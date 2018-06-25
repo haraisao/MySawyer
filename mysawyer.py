@@ -14,12 +14,17 @@ class MySawyer(object):
   def __init__(self, name='MySawyer', limb='right'):
     rospy.init_node(name)
     rospy.sleep(1)
+    #
+    #
     self._limb=intera_interface.Limb(limb)
     self._head=intera_interface.Head()
     self._light=intera_interface.Lights()
     self._display=intera_interface.HeadDisplay()
+    self._cuff=intera_interface.Cuff()
+    self._gripper=intera_interface.Gripper()
 
     #
+    #  Enable Robot
     self._rs=intera_interface.RobotEnable()
     self._init_state=self._rs.state().enabled
     self._rs.enable()
@@ -41,6 +46,7 @@ class MySawyer(object):
     self._is_recording=False
     self.max_record_time=30
 
+    self.head_light_on()
   #
   #
   def update_pose(self):
@@ -50,14 +56,18 @@ class MySawyer(object):
   #
   #
   def init_pos(self):
+    self.head_green()
     self._limb.move_to_neutral(speed=self._speed)
     self.update_pose()
+    self.head_light_on()
 
   #
   #
   def move_joints(self, pos):
+    self.head_green()
     self._limb.move_to_joint_positions(pos)
     self.update_pose()
+    self.head_light_on()
    
   #
   #
@@ -133,16 +143,33 @@ class MySawyer(object):
   #
   #
   def play_motion(self, name, intval=0.0):
+    self.head_green()
     for pos in self._motions[name]:
-      if rospy.is_shutdown() : break
+      if rospy.is_shutdown() :
+        self.head_red()
+        return
       self._limb.move_to_joint_positions(pos)
       rospy.sleep(intval)
+    self.head_light_on()
  
+   #
+   #
+   def play_motion_seq(self, names):
+    self.head_green()
+    for name in names:
+      for pos in self._motions[name]:
+        if rospy.is_shutdown() :
+          self.head_red()
+          return
+        self._limb.move_to_joint_positions(pos)
+    self.head_light_on()
+ 
+  #
+  #
   def show_motions(self):
       print(self._motions.keys())
+  
   #############################################
-
-
   #
   #
   def save_pos(self, name):
@@ -150,7 +177,6 @@ class MySawyer(object):
       for pos in self._motions[name]:
         f.write(str(pos))
         f.write("\n")
- 
   #
   #
   def load_pos(self, name):
@@ -181,6 +207,11 @@ class MySawyer(object):
     self._light.set_light_state('head_green_light',False)
     self._light.set_light_state('head_blue_light',False)
     self._light.set_light_state('head_red_light',True)
+
+  def head_light_on(self):
+    self._light.set_light_state('head_red_light',True)
+    self._light.set_light_state('head_green_light',True)
+    self._light.set_light_state('head_blue_light',True)
 
   def head_light_off(self):
     self._light.set_light_state('head_red_light',False)

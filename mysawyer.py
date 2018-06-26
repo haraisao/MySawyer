@@ -21,7 +21,11 @@ class MySawyer(object):
     self._light=intera_interface.Lights()
     self._display=intera_interface.HeadDisplay()
     self._cuff=intera_interface.Cuff()
-    self._gripper=intera_interface.Gripper()
+    try:
+      self._gripper=intera_interface.Gripper()
+    except:
+      self._gripper=None
+      
 
     #
     #  Enable Robot
@@ -45,6 +49,7 @@ class MySawyer(object):
     self._index=0
     self._is_recording=False
     self.max_record_time=30
+    self._accuracy=0.05
 
     self.head_light_on()
   #
@@ -97,12 +102,15 @@ class MySawyer(object):
   #
   def record_motion(self, name=None, dtime=0, intval=1.0):
     if not name :
-      name = 'Motion_' + str(self._index)
+      name=self.mk_motion_name()
       self._index += 1
 
     if dtime <= 0:
       dtime=self.max_record_time
-    print ("Start Recording")
+
+    print ("Start Recording:", name)
+    self.head_blue()
+
     self._motions[name]=[]
     self._is_recording=True
     end_time = rospy.Time.now() + rospy.Duration(dtime) 
@@ -113,7 +121,14 @@ class MySawyer(object):
 
     print ("End Recording: record ", len(self._motions[name]), " points")
     self._is_recording=False
+    self.head_light_on()
 
+  def mk_motion_name(self):
+    name = 'Motion_' + str(self._index)
+    while name in self._motions:
+      self._index += 1 
+      name = 'Motion_' + str(self._index)
+    return name
   #
   #######################################################
   def start_record(self, value):
@@ -148,13 +163,13 @@ class MySawyer(object):
       if rospy.is_shutdown() :
         self.head_red()
         return
-      self._limb.move_to_joint_positions(pos)
-      rospy.sleep(intval)
+      self._limb.move_to_joint_positions(pos, threshold=self._accuracy)
+      if intval > 0: rospy.sleep(intval)
     self.head_light_on()
  
-   #
-   #
-   def play_motion_seq(self, names):
+  #
+  #
+  def play_motion_seq(self, names):
     self.head_green()
     for name in names:
       for pos in self._motions[name]:
@@ -166,20 +181,20 @@ class MySawyer(object):
  
   #
   #
-  def show_motions(self):
+  def list_motions(self):
       print(self._motions.keys())
   
   #############################################
   #
   #
-  def save_pos(self, name):
+  def save_motion(self, name):
     with open(name+".pos", mode="w") as f:
       for pos in self._motions[name]:
         f.write(str(pos))
         f.write("\n")
   #
   #
-  def load_pos(self, name):
+  def load_motion(self, name):
     self._motions[name]=[]
     with open(name+".pos") as f:
       motion=f.readlines()

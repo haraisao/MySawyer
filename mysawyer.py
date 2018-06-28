@@ -42,20 +42,22 @@ class MySawyer(object):
       
     #
     # Default Variables
+    self._init_pos=[0.0, -1.178, 0.0, 2.178, 0.0, 0.567, 3.313]
     self._default_pos=[0.0, -0.9, 0.0, 1.8, 0.0, -0.9, 0.0]
     self._speed_ratio=0.1 # 0.001 -- 1.0
     self._accel_ratio=0.5 # 0.001 -- 1.0
-    self._trjType='JOINT' # 'JOINT' ot 'CARTESIAN'
+    self._trajType='JOINT' # 'JOINT' ot 'CARTESIAN'
     self._interaction_active=True 
     self._K_impedance=[1300.0,1300.0, 1300.0, 30.0, 30.0, 30.0]
+    self._max_impedance=[1,1,1,1,1,1]
     self._interaction_control_mode=[1,1,1,1,1,1]
     self._interaction_frame=[0,0,0,1,0,0,0]
     self._in_endpoint_frame=False
     self._endpoint_name='right_hand'
     self._force_command=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     self._K_nullspace=[5.0, 10.0, 5.0, 10.0, 5.0, 10.0, 5.0]
-    self._disable_damping_raseting=False
-    self._diable_reference_resetting=False
+    self._disable_damping_in_force_control=False
+    self._disable_reference_resetting=False
     self._rotations_for_constrained_zeroG=False
     self._timeout=None
     #
@@ -105,10 +107,11 @@ class MySawyer(object):
   #
   #
   def init_pos(self):
-    self.head_green()
-    self._limb.move_to_neutral(speed=self._speed_ratio)
-    self.update_pose()
-    self._light.head_light_on()
+    self.move_to(self._init_pos)
+    #self._light.head_green()
+    #self._limb.move_to_neutral(speed=self._speed_ratio)
+    #self.update_pose()
+    #self._light.head_light_on()
   #
   #
   def set_speed(self, rate=0.3):
@@ -126,7 +129,7 @@ class MySawyer(object):
   ##############################################
   # Joint Position Control (Depreciated for Intera 5.2 and beyond)
   def move_joints(self, pos):
-    self.head_green()
+    self._light.head_green()
     self._limb.move_to_joint_positions(pos)
     self.update_pose()
     self._light.head_light_on()
@@ -204,7 +207,7 @@ class MySawyer(object):
   #
   #
   def play_motion(self, name, intval=0.0):
-    self.head_green()
+    self._light.head_green()
     for pos in self._motions[name]:
       if rospy.is_shutdown() :
         self.head_red()
@@ -215,7 +218,7 @@ class MySawyer(object):
   #
   #
   def play_motion_seq(self, names):
-    self.head_green()
+    self._light.head_green()
     for name in names:
       for pos in self._motions[name]:
         if rospy.is_shutdown() :
@@ -249,15 +252,17 @@ class MySawyer(object):
   ####################################
   #
   #  Move Motion
-  def move_to(self, target_joints, tout=None, with_in_contact=False):
+  def move_to(self, target_joints=None, tout=None, with_in_contact=False):
     #
     # for Motion Controller Interface
+    if not target_joints :
+      target_joints=self._default_pos 
     _motion_trajectory=MotionTrajectory(limb=self._limb)
     _wpt_opts=MotionWaypointOptions(max_joint_speed_ratio=self._speed_ratio,
                                        max_joint_accel=self._accel_ratio)
     _waypoint=MotionWaypoint(options=_wpt_opts, limb=self._limb)
 
-    _waypoint.set_joint_angles(joint_angles=self._limb.joint_orderd_angles())
+    _waypoint.set_joint_angles(joint_angles=self._limb.joint_ordered_angles())
     _motion_trajectory.append_waypoint(_waypoint.to_msg())
 
     _waypoint.set_joint_angles(joint_angles=target_joints)
@@ -266,13 +271,20 @@ class MySawyer(object):
     if with_in_contact :
       opts=self.get_in_contact_opts()
       if opts :
-        motion_trajectory.set_trajectory_options(opts)
+        _motion_trajectory.set_trajectory_options(opts)
 
+    self._light.head_green()
     result=_motion_trajectory.send_trajectory(timeout=tout)
 
     if result is None:
+      self._light.head_yellow()
       print("Trajectory FAILED to send")
       return None
+
+    if result.result:
+      self._light.head_light_on()
+    else:
+      self._light.head_red()
 
     return result.result
   
@@ -295,8 +307,7 @@ class MySawyer(object):
     interaction_options.set_endpoint_name(self._endpoint_name)
 
     if len(self._interaction_frame) == 7:
-      quat_sum_square = self._interaction_frame[3]*self._interaction_frame[3] + self._interaction_frame[4]*self._interaction_frame[4]
-            + self._interaction_frame[5]*self._interaction_frame[5] + self._interaction_frame[6]*self._interaction_frame[6]
+      quat_sum_square = self._interaction_frame[3]*self._interaction_frame[3] + self._interaction_frame[4]*self._interaction_frame[4] + self._interaction_frame[5]*self._interaction_frame[5] + self._interaction_frame[6]*self._interaction_frame[6]
 
       if quat_sum_square  < 1.0 + 1e-7 and quat_sum_square > 1.0 - 1e-7:
         interaction_frame = Pose()
@@ -322,7 +333,7 @@ class MySawyer(object):
 
     trajectory_options.interaction_params = interaction_options.to_msg()
 
-    return traject_options
+    return trajectory_options
 
 #
 #  LED Light

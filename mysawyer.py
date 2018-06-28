@@ -29,9 +29,12 @@ class MySawyer(object):
     #
     self._limb=intera_interface.Limb(limb)
     self._head=intera_interface.Head()
-    self._light=intera_interface.Lights()
+
+    self._light=SawyerLight()
+    
     self._display=intera_interface.HeadDisplay()
     self._cuff=intera_interface.Cuff()
+
     try:
       self._gripper=intera_interface.Gripper()
     except:
@@ -79,6 +82,8 @@ class MySawyer(object):
                                        max_joint_accel=self._accel_ratio)
     self._waypoint=MotionWaypoint(options=self._wpt_opts, limb=self._limb)
 
+    #
+    #
 
     self._limb.set_joint_position_speed(self._speed_ratio)
 
@@ -90,7 +95,7 @@ class MySawyer(object):
 
     #
     # LED white ON
-    self.head_light_on()
+    self._light.head_light_on()
   #
   #
   def update_pose(self):
@@ -103,7 +108,7 @@ class MySawyer(object):
     self.head_green()
     self._limb.move_to_neutral(speed=self._speed_ratio)
     self.update_pose()
-    self.head_light_on()
+    self._light.head_light_on()
   #
   #
   def set_speed(self, rate=0.3):
@@ -124,7 +129,7 @@ class MySawyer(object):
     self.head_green()
     self._limb.move_to_joint_positions(pos)
     self.update_pose()
-    self.head_light_on()
+    self._light.head_light_on()
   #
   #
   def move_cart(self, x_dist, y_dist, z_dist):
@@ -149,6 +154,7 @@ class MySawyer(object):
     self._motions[name]=[]
     self._is_recording=True
     end_time = rospy.Time.now() + rospy.Duration(dtime) 
+
     while (rospy.Time.now() < end_time) and self._is_recording :
       if rospy.is_shutdown() : break
       self._motions[name].append(self._limb.joint_angles())
@@ -156,7 +162,7 @@ class MySawyer(object):
 
     print ("End Recording: record ", len(self._motions[name]), " points")
     self._is_recording=False
-    self.head_light_on()
+    self._light.head_light_on()
   #
   #
   def mk_motion_name(self):
@@ -205,7 +211,7 @@ class MySawyer(object):
         return
       self._limb.move_to_joint_positions(pos, threshold=self._accuracy)
       if intval > 0: rospy.sleep(intval)
-    self.head_light_on()
+    self._light.head_light_on()
   #
   #
   def play_motion_seq(self, names):
@@ -216,7 +222,7 @@ class MySawyer(object):
           self.head_red()
           return
         self._limb.move_to_joint_positions(pos)
-    self.head_light_on()
+    self_light.head_light_on()
   #
   #
   def list_motions(self):
@@ -226,7 +232,7 @@ class MySawyer(object):
   #
   #
   def save_motion(self, name):
-    with open(name+".pos", mode="w") as f:
+    with open("motions/"+name+".jpos", mode="w") as f:
       for pos in self._motions[name]:
         f.write(str(pos))
         f.write("\n")
@@ -234,10 +240,44 @@ class MySawyer(object):
   #
   def load_motion(self, name):
     self._motions[name]=[]
-    with open(name+".pos") as f:
+    with open("motions/"+name+".jpos") as f:
       motion=f.readlines()
     for p in motion:
       self._motions[name].append( eval(p) )
+
+
+  ####################################
+  #
+  #  Move Motion
+  def move_to(self, target_joints, tout=None):
+    #
+    # for Motion Controller Interface
+    _motion_trajectory=MotionTrajectory(limb=self._limb)
+    _wpt_opts=MotionWaypointOptions(max_joint_speed_ratio=self._speed_ratio,
+                                       max_joint_accel=self._accel_ratio)
+    _waypoint=MotionWaypoint(options=_wpt_opts, limb=self._limb)
+
+    _waypoint.set_joint_angles(joint_angles=self._limb.joint_orderd_angles())
+    _motion_trajectory.append_waypoint(_waypoint.to_msg())
+
+    _waypoint.set_joint_angles(joint_angles=target_joints)
+    _motion_trajectory.append_waypoint(_waypoint.to_msg())
+
+    result=_motion_trajectory.send_trajectory(timeout=tout)
+    
+    if result is None:
+      print("Trajectory FAILED to send")
+      return None
+
+    return result.result
+
+
+#
+#  LED Light
+#
+class SawyerLight(object):
+  def __init__(self):
+    self._light=intera_interface.Lights()
   #
   #  Right
   ###########################
@@ -277,4 +317,3 @@ class MySawyer(object):
     self._light.set_light_state('head_blue_light',False)
 
   ###########################
-

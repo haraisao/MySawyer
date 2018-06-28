@@ -31,81 +31,81 @@ module RTC {
 
   struct TimedState
   {
-	Time tm;
-	short data;
+	  Time tm;
+  	short data;
   };
 
   struct TimedShort
   {
-	Time tm;
-	short data;
+  	Time tm;
+  	short data;
   };
 
   struct TimedLong
   {
-	Time tm;
-	long data;
+	  Time tm;
+	  long data;
   };
 
   struct TimedUShort
   {
-	Time tm;
-	unsigned short data;
+	  Time tm;
+	  unsigned short data;
   };
 
   struct TimedULong
   {
-	Time tm;
-	unsigned long data;
+	  Time tm;
+	  unsigned long data;
   };
 
   struct TimedFloat
   {
-	Time tm;
-	float data;
+	  Time tm;
+	  float data;
   };
 
   struct TimedDouble
   {
-	Time tm;
-	double data;
+	  Time tm;
+	  double data;
   };
 
   struct TimedChar
   {
-	Time tm;
-	char data;
+	  Time tm;
+	  char data;
   };
 
   struct TimedWChar
   {
-	Time tm;
-	wchar data;
+	  Time tm;
+	  wchar data;
   };
 
   struct TimedBoolean
   {
-	Time tm;
-	boolean data;
+	  Time tm;
+	  boolean data;
   };
 
   struct TimedOctet
   {
-	Time tm;
-	octet data;
+	  Time tm;
+	  octet data;
   };
 
   struct TimedString
   {
-	Time tm;
-	string data;
+	  Time tm;
+	  string data;
   };
 
 
   struct TimedWString
   {
-	Time tm;
-	wstring data;
+	  Time tm;
+	  wstring data;
   };
 
 
@@ -114,74 +114,74 @@ module RTC {
    */
   struct TimedShortSeq
   {
-	Time tm;
-	sequence<short> data;
+	  Time tm;
+	  sequence<short> data;
   };
 
   struct TimedLongSeq
   {
-	Time tm;
-	sequence<long> data;
+	  Time tm;
+	  sequence<long> data;
   };
 
   struct TimedUShortSeq
   {
-	Time tm;
-	sequence<unsigned short> data;
+	  Time tm;
+	  sequence<unsigned short> data;
   };
 
   struct TimedULongSeq
   {
-	Time tm;
-	sequence<unsigned long> data;
+	  Time tm;
+	  sequence<unsigned long> data;
   };
 
   struct TimedFloatSeq
   {
-	Time tm;
-	sequence<float> data;
+	  Time tm;
+	  sequence<float> data;
   };
 
   struct TimedDoubleSeq
   {
-	Time tm;
-	sequence<double> data;
+	  Time tm;
+	  sequence<double> data;
   };
 
   struct TimedCharSeq
   {
-	Time tm;
-	sequence<char> data;
+	  Time tm;
+	  sequence<char> data;
   };
 
   struct TimedWCharSeq
   {
-	Time tm;
-	sequence<wchar> data;
+	  Time tm;
+	  sequence<wchar> data;
   };
 
   struct TimedBooleanSeq
   {
-	Time tm;
-	sequence<boolean> data;
+	  Time tm;
+	  sequence<boolean> data;
   };
 
   struct TimedOctetSeq
   {
-	Time tm;
-	sequence<octet> data;
+	  Time tm;
+	  sequence<octet> data;
   };
 
   struct TimedStringSeq
   {
-	Time tm;
-	sequence<string> data;
+	  Time tm;
+	  sequence<string> data;
   };
   
   struct TimedWStringSeq
   {
-	Time tm;
-	sequence<wstring> data;
+	  Time tm;
+	  sequence<wstring> data;
   };
   
 };

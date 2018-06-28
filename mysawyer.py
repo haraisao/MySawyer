@@ -4,6 +4,16 @@ from __future__ import print_function
 import rospy
 import intera_interface
 
+from geometry_msgs.msg import Pose
+from intera_motion_interface import (
+    MotionTrajectory,
+    MotionWaypoint,
+    MotionWaypointOptions,
+    InteractionOptions
+)
+from intera_motion_msgs.msg import TrajectoryOptions
+from intera_motion_interface.utility_functions import int2bool
+
 
 #
 #
@@ -26,24 +36,46 @@ class MySawyer(object):
     except:
       self._gripper=None
       
-
+    #
+    # Default Variables
+    self._default_pos=[0.0, -0.9, 0.0, 1.8, 0.0, -0.9, 0.0]
+    self._speed_ratio=0.1 # 0.001 -- 1.0
+    self._accel_ratio=0.5 # 0.001 -- 1.0
+    self._trjType='JOINT' # 'JOINT' ot 'CARTESIAN'
+    self._interaction_active=True 
+    self._K_impedance=[1300.0,1300.0, 1300.0, 30.0, 30.0, 30.0]
+    self._interaction_control_mode=[1,1,1,1,1,1]
+    self._interaction_frame=[0,0,0,1,0,0,0]
+    self._in_endpoint_frame=False
+    self._endpoint_name='right_hand'
+    self._force_command=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    self._K_nullspace=[5.0, 10.0, 5.0, 10.0, 5.0, 10.0, 5.0]
+    self._disable_damping_raseting=False
+    self._diable_reference_resetting=False
+    self._rotations_for_constrained_zeroG=False
+    self._timeout=None
     #
     #  Enable Robot
     self._rs=intera_interface.RobotEnable()
     self._init_state=self._rs.state().enabled
     self._rs.enable()
 
+    ## for event handlers
     self._navigator=intera_interface.Navigator()
     self.ok_id=None
     self.show_id=None
     self.back_id=None
     #
 
+    self._motion_trajectory=MotionTrajectory(limb=self._limb)
+    self._wpt_opts=MotionWaypointOptions(max_joint_speed_ratio=self._speed_ratio,
+                                       max_joint_accel=self._accel_ratio)
+    self._waypoint=MotionWaypoint(options=self._wpt_opts, limb=self._limb)
+
     self._angles=self._limb.joint_angles()
     self._pose=self._limb.endpoint_pose()
 
-    self._speed=0.15
-    self._limb.set_joint_position_speed(self._speed)
+    self._limb.set_joint_position_speed(self._speed_ratio)
 
     self._motions={}
     self._index=0
@@ -62,7 +94,7 @@ class MySawyer(object):
   #
   def init_pos(self):
     self.head_green()
-    self._limb.move_to_neutral(speed=self._speed)
+    self._limb.move_to_neutral(speed=self._speed_ratio)
     self.update_pose()
     self.head_light_on()
 
@@ -77,7 +109,7 @@ class MySawyer(object):
   #
   #
   def set_speed(self, rate=0.3):
-    self._speed=rate
+    self._speed_ratio=rate
     self._limb.set_joint_position_speed(rate)
 
   #

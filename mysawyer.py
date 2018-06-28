@@ -249,7 +249,7 @@ class MySawyer(object):
   ####################################
   #
   #  Move Motion
-  def move_to(self, target_joints, tout=None):
+  def move_to(self, target_joints, tout=None, with_in_contact=False):
     #
     # for Motion Controller Interface
     _motion_trajectory=MotionTrajectory(limb=self._limb)
@@ -263,14 +263,66 @@ class MySawyer(object):
     _waypoint.set_joint_angles(joint_angles=target_joints)
     _motion_trajectory.append_waypoint(_waypoint.to_msg())
 
+    if with_in_contact :
+      opts=self.get_in_contact_opts()
+      if opts :
+        motion_trajectory.set_trajectory_options(opts)
+
     result=_motion_trajectory.send_trajectory(timeout=tout)
-    
+
     if result is None:
       print("Trajectory FAILED to send")
       return None
 
     return result.result
+  
+  #
+  #  set Interraction control
+  def get_in_contact_opts(self):
+    interaction_options = InteractionOptions()
 
+    trajectory_options = TrajectoryOptions()
+    trajectory_options.interaction_control = True
+    trajectory_options.interpolation_type = self._trajType
+
+    interaction_options.set_interaction_control_active(self._interaction_active)
+    interaction_options.set_K_impedance(self._K_impedance)
+    interaction_options.set_max_impedance(self._max_impedance)
+    interaction_options.set_interaction_control_mode(self._interaction_control_mode)
+    interaction_options.set_in_endpoint_frame(self._in_endpoint_frame)
+    interaction_options.set_force_command(self._force_command)
+    interaction_options.set_K_nullspace(self._K_nullspace)
+    interaction_options.set_endpoint_name(self._endpoint_name)
+
+    if len(self._interaction_frame) == 7:
+      quat_sum_square = self._interaction_frame[3]*self._interaction_frame[3] + self._interaction_frame[4]*self._interaction_frame[4]
+            + self._interaction_frame[5]*self._interaction_frame[5] + self._interaction_frame[6]*self._interaction_frame[6]
+
+      if quat_sum_square  < 1.0 + 1e-7 and quat_sum_square > 1.0 - 1e-7:
+        interaction_frame = Pose()
+        interaction_frame.position.x = self._interaction_frame[0]
+        interaction_frame.position.y = self._interaction_frame[1]
+        interaction_frame.position.z = self._interaction_frame[2]
+        interaction_frame.orientation.w = self._interaction_frame[3]
+        interaction_frame.orientation.x = self._interaction_frame[4]
+        interaction_frame.orientation.y = self._interaction_frame[5]
+        interaction_frame.orientation.z = self._interaction_frame[6]
+        interaction_options.set_interaction_frame(interaction_frame)
+      else:
+        print('Invalid input to quaternion! The quaternion must be a unit quaternion!')
+        return None
+
+    else:
+        print('Invalid input to interaction_frame!')
+        return None
+
+    interaction_options.set_disable_damping_in_force_control(self._disable_damping_in_force_control)
+    interaction_options.set_disable_reference_resetting(self._disable_reference_resetting)
+    interaction_options.set_rotations_for_constrained_zeroG(self._rotations_for_constrained_zeroG)
+
+    trajectory_options.interaction_params = interaction_options.to_msg()
+
+    return traject_options
 
 #
 #  LED Light

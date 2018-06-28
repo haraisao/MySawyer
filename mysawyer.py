@@ -6,6 +6,7 @@ import intera_interface
 
 #
 #
+from intera_core_msgs.msg import InteractionControlCommand
 from geometry_msgs.msg import Pose
 from intera_motion_interface import (
     MotionTrajectory,
@@ -14,7 +15,7 @@ from intera_motion_interface import (
     InteractionOptions
 )
 from intera_motion_msgs.msg import TrajectoryOptions
-from intera_motion_interface.utility_functions import int2bool
+#from intera_motion_interface.utility_functions import int2bool
 
 #
 #
@@ -289,14 +290,9 @@ class MySawyer(object):
     return result.result
   
   #
-  #  set Interraction control
-  def get_in_contact_opts(self):
+  #  set Interaction control
+  def set_interaction_params(self):
     interaction_options = InteractionOptions()
-
-    trajectory_options = TrajectoryOptions()
-    trajectory_options.interaction_control = True
-    trajectory_options.interpolation_type = self._trajType
-
     interaction_options.set_interaction_control_active(self._interaction_active)
     interaction_options.set_K_impedance(self._K_impedance)
     interaction_options.set_max_impedance(self._max_impedance)
@@ -330,10 +326,26 @@ class MySawyer(object):
     interaction_options.set_disable_damping_in_force_control(self._disable_damping_in_force_control)
     interaction_options.set_disable_reference_resetting(self._disable_reference_resetting)
     interaction_options.set_rotations_for_constrained_zeroG(self._rotations_for_constrained_zeroG)
+    return interaction_options
 
-    trajectory_options.interaction_params = interaction_options.to_msg()
+  def set_interaction_mode(self):
+    pub = rospy.Publisher('/robot/limb/right/interaction_control_command', InteractionControlCommand, queue_size = 1)
+    interaction_options = self.set_interaction_params()
+    if interaction_options:
+      msg=ubteraction_options.to_msg()
+      pub.publish(msg)
 
-    return trajectory_options
+  def get_in_contact_opts(self):
+    interaction_options = self.set_interaction_params()
+    if interaction_options:
+      trajectory_options = TrajectoryOptions()
+      trajectory_options.interaction_control = True
+      trajectory_options.interpolation_type = self._trajType
+      trajectory_options.interaction_params = interaction_options.to_msg()
+      return trajectory_options
+    else
+      return None
+
 
 #
 #  LED Light

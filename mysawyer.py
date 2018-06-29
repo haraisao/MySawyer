@@ -100,6 +100,7 @@ class MySawyer(object):
     self._motions={}
     self._joint_positions={'init':self._init_pos, 'default':self._default_pos}
     self._index=0
+    self._p_index=0
     self._is_recording=False
     self.max_record_time=30
     self._accuracy=0.05
@@ -210,11 +211,13 @@ class MySawyer(object):
 
   def record_pos(self,val):
     if val :
-      name = 'Position_' + str(self._index)
+      self._light.head_yellow()
+      name = 'P_' + str(self._p_index)
       while name in self._joint_positions:
-        self._index += 1 
-        name = 'Position_' + str(self._index)
+        self._p_index += 1 
+        name = 'P_' + str(self._p_index)
       self._joint_positions[name]=self._limb.joint_ordered_angles()
+      self._light.head_on()
 
   #
   #  Motion Recorder Event Handleer

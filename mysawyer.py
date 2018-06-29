@@ -74,7 +74,7 @@ class MySawyer(object):
     self._rotational_accel=1.57  # rad/s/s
     #
     #  Enable Robot
-    self._rs=intera_interface.RobotEnable()
+    self._rs=intera_interface.RobotEnable(intera_interface.CHECK_VERSION)
     self._init_state=self._rs.state().enabled
     self._rs.enable()
 
@@ -90,12 +90,14 @@ class MySawyer(object):
     self._pose=self._limb.endpoint_pose()
 
     self._joint_names=self._limb.joint_names()
+    self._motion_trajectory=None
     #
     #
 
     self._limb.set_joint_position_speed(self._speed_ratio)
 
     self._motions={}
+    self._joint_positions={'init':self._init_pos, 'default':self._default_pos}
     self._index=0
     self._is_recording=False
     self.max_record_time=30
@@ -103,7 +105,28 @@ class MySawyer(object):
 
     #
     # LED white ON
-    self._light.head_light_on()
+    self._light.head_on()
+  #
+  #
+  def enable(self):
+    self._rs.enable()
+  #
+  #
+  def state(self):
+    print(self._rs.state())
+  #
+  #
+  def reset(self):
+    self._rs.reset()
+  #
+  #
+  def disable(self):
+    self._rs.disable()
+  #
+  #
+  def stop(self):
+    self._rs.stop()
+
   #
   #
   def update_pose(self):
@@ -117,7 +140,7 @@ class MySawyer(object):
     #self._light.head_green()
     #self._limb.move_to_neutral(speed=self._speed_ratio)
     #self.update_pose()
-    #self._light.head_light_on()
+    #self._light.head_on()
   #
   #
   def set_speed(self, rate=0.3):
@@ -138,7 +161,7 @@ class MySawyer(object):
     self._light.head_green()
     self._limb.move_to_joint_positions(pos)
     self.update_pose()
-    self._light.head_light_on()
+    self._light.head_on()
   #
   #
   def move_cart(self, x_dist, y_dist, z_dist):
@@ -171,7 +194,7 @@ class MySawyer(object):
 
     print ("End Recording: record ", len(self._motions[name]), " points")
     self._is_recording=False
-    self._light.head_light_on()
+    self._light.head_on()
   #
   #
   def mk_motion_name(self):
@@ -218,9 +241,10 @@ class MySawyer(object):
       if rospy.is_shutdown() :
         self.head_red()
         return
+      # 
       self._limb.move_to_joint_positions(pos, threshold=self._accuracy)
       if intval > 0: rospy.sleep(intval)
-    self._light.head_light_on()
+    self._light.head_on()
   #
   #
   def play_motion_seq(self, names):
@@ -231,11 +255,15 @@ class MySawyer(object):
           self.head_red()
           return
         self._limb.move_to_joint_positions(pos)
-    self_light.head_light_on()
+    self_light.head_on()
   #
   #
   def list_motions(self):
       print(self._motions.keys())
+
+  #
+  def joint_pos_d2l(self, pos):
+      return map(lambda x: pos[x], self._joint_names)
 
   #############################################
   #
@@ -261,26 +289,34 @@ class MySawyer(object):
   def move_to(self, target_joints=None, tout=None, with_in_contact=False):
     #
     # for Motion Controller Interface
-    if not target_joints :
+    if type(target_joints) == str:
+      if target_joints in self._joint_positions:
+        target_joints=self._joint_positions[target_joints]
+      else:
+        print("Invalid position name")
+
+    elif not target_joints :
       target_joints=self._default_pos 
-    _motion_trajectory=MotionTrajectory(limb=self._limb)
+
+    self._motion_trajectory=MotionTrajectory(limb=self._limb)
+
     _wpt_opts=MotionWaypointOptions(max_joint_speed_ratio=self._speed_ratio,
                                        max_joint_accel=self._accel_ratio)
     _waypoint=MotionWaypoint(options=_wpt_opts, limb=self._limb)
 
     _waypoint.set_joint_angles(joint_angles=self._limb.joint_ordered_angles())
-    _motion_trajectory.append_waypoint(_waypoint.to_msg())
+    self._motion_trajectory.append_waypoint(_waypoint.to_msg())
 
     _waypoint.set_joint_angles(joint_angles=target_joints)
-    _motion_trajectory.append_waypoint(_waypoint.to_msg())
+    self._motion_trajectory.append_waypoint(_waypoint.to_msg())
 
     if with_in_contact :
       opts=self.get_in_contact_opts()
       if opts :
-        _motion_trajectory.set_trajectory_options(opts)
+        self._motion_trajectory.set_trajectory_options(opts)
 
     self._light.head_green()
-    result=_motion_trajectory.send_trajectory(timeout=tout)
+    result=self._motion_trajectory.send_trajectory(timeout=tout)
 
     if result is None:
       self._light.head_yellow()
@@ -288,43 +324,59 @@ class MySawyer(object):
       return None
 
     if result.result:
-      self._light.head_light_on()
+      self._light.head_on()
     else:
       self._light.head_red()
 
+    self._motion_trajectory=None
     return result.result
 
- #
- #
- def move_cart_to(self, target_pos, tout=None):
+  #
+  #
+  def cart_move_to(self, target_pos, tout=None, relative_mode=False):
     #
     # for Motion Controller Interface
     _trajectory_opts=TrajectoryOptions()
     _trajectory_opts.interpolation_type=TrajectoryOptions.CARTESIAN
-    _motion_trajectory=MotionTrajectory(trajectory_options=_trajectory_opts, limb=self._limb)
 
-    _wpt_opts=MotionWaypointOptions(max_linear_speed=self._linear_speed,max_linear_accel=self._linear_accel,
-                                       max_rotational_speed=self._rotational_speed,max_rotationasl_accel=self._rotational_accel, max_joint_speed_ratio=0.5)
+    self._motion_trajectory=MotionTrajectory(trajectory_options=_trajectory_opts, limb=self._limb)
+
+    _wpt_opts=MotionWaypointOptions(max_linear_speed=self._linear_speed,
+                                       max_linear_accel=self._linear_accel,
+                                       max_rotational_speed=self._rotational_speed,
+                                       max_rotational_accel=self._rotational_accel,
+                                       max_joint_speed_ratio=1.0)
     _waypoint=MotionWaypoint(options=_wpt_opts, limb=self._limb)
 
-    endpoint_state=self._limb.tip_state(self.tip_name)
+    endpoint_state=self._limb.tip_state(self._tip_name)
     pose=endpoint_state.pose
-    #  absolute  
-    pose.position.x=target_pos[0]
-    pose.position.y=target_pos[1]
-    pose.position.z=target_pos[2]
-    pose.orientation.x=target_pos[3]
-    pose.orientation.y=target_pos[4]
-    pose.orientation.z=target_pos[5]
-    pose.orientation.w=target_pos[6]
+
+    if relative_mode:
+      trans = PyKDL.Vector(target_pos[0],target_pos[1],target_pos[2])
+      rot = PyKDL.Rotation.RPY(target_pos[3], target_pos[4],target_pos[5])
+
+      f2 = PyKDL.Frame(rot, trans)
+      if self._in_tip_frame:
+        pose=posemath.toMsg(posemath.fromMsg(pose) * f2)
+      else:
+        pose=posemath.toMsg(f2 * posemath.fromMsg(pose))
+    else:
+      #  global position 
+      pose.position.x=target_pos[0]
+      pose.position.y=target_pos[1]
+      pose.position.z=target_pos[2]
+      pose.orientation.x=target_pos[3]
+      pose.orientation.y=target_pos[4]
+      pose.orientation.z=target_pos[5]
+      pose.orientation.w=target_pos[6]
     #
     poseStamped=PoseStamped()
     poseStamped.pose=pose
-    _waypoint.set_vartesian_pose(poseStamped, self._tip_name, []])
-    _motion_trajectory.append_waypoint(_waypoint.to_msg())
+    _waypoint.set_cartesian_pose(poseStamped, self._tip_name, [])
+    self._motion_trajectory.append_waypoint(_waypoint.to_msg())
 
     self._light.head_green()
-    result=_motion_trajectory.send_trajectory(timeout=tout)
+    result=self._motion_trajectory.send_trajectory(timeout=tout)
 
     if result is None:
       self._light.head_yellow()
@@ -332,12 +384,16 @@ class MySawyer(object):
       return None
 
     if result.result:
-      self._light.head_light_on()
+      self._light.head_on()
     else:
       self._light.head_red()
 
+    self._motion_trajectory=None
     return result.result
 
+  def stop_trajectory(self):
+    if self._motion_trajectory :
+      self._motion_trajectory.stop_trajectory()
 
   #
   #  set Interaction control
@@ -393,7 +449,7 @@ class MySawyer(object):
       trajectory_options.interpolation_type = self._trajType
       trajectory_options.interaction_params = interaction_options.to_msg()
       return trajectory_options
-    else
+    else:
       return None
 
 
@@ -430,13 +486,13 @@ class SawyerLight(object):
     self._light.set_light_state('head_red_light',True)
   #
   #
-  def head_light_on(self):
+  def head_on(self):
     self._light.set_light_state('head_red_light',True)
     self._light.set_light_state('head_green_light',True)
     self._light.set_light_state('head_blue_light',True)
   #
   #
-  def head_light_off(self):
+  def head_off(self):
     self._light.set_light_state('head_red_light',False)
     self._light.set_light_state('head_green_light',False)
     self._light.set_light_state('head_blue_light',False)

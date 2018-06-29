@@ -135,12 +135,14 @@ class MySawyer(object):
  
   #
   #
-  def init_pos(self):
-    self.move_to(self._init_pos)
-    #self._light.head_green()
-    #self._limb.move_to_neutral(speed=self._speed_ratio)
-    #self.update_pose()
-    #self._light.head_on()
+  def init_pos(self, use_motion_ctrl=True):
+    if use_motion_ctrl:
+      self.move_to([self._init_pos])
+    else:
+      self._light.head_green()
+      self._limb.move_to_neutral(speed=self._speed_ratio)
+      self.update_pose()
+      self._light.head_on()
   #
   #
   def set_speed(self, rate=0.3):
@@ -204,12 +206,20 @@ class MySawyer(object):
       name = 'Motion_' + str(self._index)
     return name
 
+  def record_pos(self,val):
+    if val :
+      name = 'Position_' + str(self._index)
+      while name in self._joint_positions:
+        self._index += 1 
+        name = 'Position_' + str(self._index)
+      self._joint_positions[name]=self._limb.joint_ordered_angles()
+
   #
   #  Motion Recorder Event Handleer
   def start_record(self, value):
      if value:
          print('Start..')
-         self.record_motion(None, 0, 1.0)
+         self.record_motion(None, 0, 0.1)
   #
   #
   def stop_record(self, value):
@@ -222,20 +232,23 @@ class MySawyer(object):
      print ("Register callbacks")
      self.ok_id=self._navigator.register_callback(self.start_record, 'right_button_ok')
      self.back_id=self._navigator.register_callback(self.stop_record, 'right_button_back')
+     self.square_id=self._navigator.register_callback(self.record_pos, 'right_button_square')
      self.show_id=self._navigator.register_callback(self.unset_record, 'right_button_show')
   #
   # unset Handler
   def unset_record(self, value=0):
-     if value and self.ok_id :
-       print ("Unregister all callbacks")
-       if self._navigator.deregister_callback(self.ok_id) : self.ok_id=None
-       if self._navigator.deregister_callback(self.show_id) : self.show_id=None
-       if self._navigator.deregister_callback(self.back_id) : self.back_id=None
+    if value and self.ok_id :
+      print ("Unregister all callbacks")
+      if self._navigator.deregister_callback(self.ok_id) : self.ok_id=None
+      #if self._navigator.deregister_callback(self.show_id) : self.show_id=None
+      if self._navigator.deregister_callback(self.back_id) : self.back_id=None
+      if self._navigator.deregister_callback(self.square_id) : self.square_id=None
   
   #######################################################
   #
   #
   def play_motion(self, name, intval=0.0):
+    self._limb.set_joint_position_speed(self._speed_ratio)
     self._light.head_green()
     for pos in self._motions[name]:
       if rospy.is_shutdown() :
@@ -248,6 +261,7 @@ class MySawyer(object):
   #
   #
   def play_motion_seq(self, names):
+    self._limb.set_joint_position_speed(self._speed_ratio)
     self._light.head_green()
     for name in names:
       for pos in self._motions[name]:
@@ -259,11 +273,14 @@ class MySawyer(object):
   #
   #
   def list_motions(self):
-      print(self._motions.keys())
-
+    print(self._motions.keys())
+  #
   #
   def joint_pos_d2l(self, pos):
-      return map(lambda x: pos[x], self._joint_names)
+    return map(lambda x: pos[x], self._joint_names)
+
+  def convert_motion(self, name):
+    return map(lambda x: self.joint_pos_d2l(x), self._motions[name])
 
   #############################################
   #
@@ -283,20 +300,30 @@ class MySawyer(object):
       self._motions[name].append( eval(p) )
 
 
+  def get_joint_positions(self, name):
+    if type(name) == str:
+      if name in self._joint_positions:
+        target_joints=self._joint_positions[name]
+      else:
+        print("Invalid position name")
+        target_joints=None
+    elif len(name) == 7:
+      target_joints=name
+    return  target_joints
+
   ####################################
   #
   #  Move Motion
-  def move_to(self, target_joints=None, tout=None, with_in_contact=False, wait_for_result=True):
+  def move_to(self, name=None, tout=None, with_in_contact=False, wait_for_result=True):
     #
     # for Motion Controller Interface
-    if type(target_joints) == str:
-      if target_joints in self._joint_positions:
-        target_joints=self._joint_positions[target_joints]
-      else:
-        print("Invalid position name")
-
-    elif not target_joints :
-      target_joints=self._default_pos 
+    if type(name) == str and name in self._motions:
+      waypoints=self.convert_motion(name)
+    elif type(name) == list:
+      waypoints=name
+    else:
+      print("Invalid motion name")
+      return None
 
     self._motion_trajectory=MotionTrajectory(limb=self._limb)
 
@@ -304,31 +331,51 @@ class MySawyer(object):
                                        max_joint_accel=self._accel_ratio)
     _waypoint=MotionWaypoint(options=_wpt_opts, limb=self._limb)
 
+    #
+    # set current joint position...
     _waypoint.set_joint_angles(joint_angles=self._limb.joint_ordered_angles())
     self._motion_trajectory.append_waypoint(_waypoint.to_msg())
 
-    _waypoint.set_joint_angles(joint_angles=target_joints)
-    self._motion_trajectory.append_waypoint(_waypoint.to_msg())
+    #
+    # set target joint position...
+    for pos in waypoints:
+      if type(pos) == str:
+        if pos in self._joint_positions:
+          pos=self._joint_positions[pos]
+          _waypoint.set_joint_angles(joint_angles=pos)
+          self._motion_trajectory.append_waypoint(_waypoint.to_msg())
+      else:
+        _waypoint.set_joint_angles(joint_angles=pos)
+        self._motion_trajectory.append_waypoint(_waypoint.to_msg())
 
+    #
+    #
     if with_in_contact :
       opts=self.get_in_contact_opts()
       if opts :
         self._motion_trajectory.set_trajectory_options(opts)
 
+    #
+    # run motion...
     self._light.head_green()
     result=self._motion_trajectory.send_trajectory(wait_for_result=wait_for_result,timeout=tout)
 
+    #
+    #
     if result is None:
       self._light.head_yellow()
       print("Trajectory FAILED to send")
       return None
+    #
+    #
+    if not wait_for_result : return True
 
-    if not wait_for_result : return True 
-    if result.result:
-      self._light.head_on()
-    else:
-      self._light.head_red()
+    #
+    if result.result: self._light.head_on()
+    else: self._light.head_red()
 
+    #
+    #
     self._motion_trajectory=None
     return result.result
 
@@ -340,8 +387,10 @@ class MySawyer(object):
     _trajectory_opts=TrajectoryOptions()
     _trajectory_opts.interpolation_type=TrajectoryOptions.CARTESIAN
 
+    #
     self._motion_trajectory=MotionTrajectory(trajectory_options=_trajectory_opts, limb=self._limb)
 
+    #
     _wpt_opts=MotionWaypointOptions(max_linear_speed=self._linear_speed,
                                        max_linear_accel=self._linear_accel,
                                        max_rotational_speed=self._rotational_speed,
@@ -349,20 +398,27 @@ class MySawyer(object):
                                        max_joint_speed_ratio=1.0)
     _waypoint=MotionWaypoint(options=_wpt_opts, limb=self._limb)
 
+    #
     endpoint_state=self._limb.tip_state(self._tip_name)
     pose=endpoint_state.pose
 
+    ########################################
+    #  set target position
+
     if relative_mode:
+      # relative position : target_pos -> x, y, z, roll, pitch, yew
       trans = PyKDL.Vector(target_pos[0],target_pos[1],target_pos[2])
       rot = PyKDL.Rotation.RPY(target_pos[3], target_pos[4],target_pos[5])
-
       f2 = PyKDL.Frame(rot, trans)
+
       if self._in_tip_frame:
+        # endpoint's cartesian systems
         pose=posemath.toMsg(posemath.fromMsg(pose) * f2)
       else:
+        # base's cartesian systems
         pose=posemath.toMsg(f2 * posemath.fromMsg(pose))
     else:
-      #  global position 
+      #  global position : x, y, z, rx, ry, rz, rw
       pose.position.x=target_pos[0]
       pose.position.y=target_pos[1]
       pose.position.z=target_pos[2]
@@ -371,29 +427,33 @@ class MySawyer(object):
       pose.orientation.z=target_pos[5]
       pose.orientation.w=target_pos[6]
     #
+    ###########################################
+    # set target position.
     poseStamped=PoseStamped()
     poseStamped.pose=pose
     _waypoint.set_cartesian_pose(poseStamped, self._tip_name, [])
     self._motion_trajectory.append_waypoint(_waypoint.to_msg())
-
+    #
+    # run motion...
     self._light.head_green()
     result=self._motion_trajectory.send_trajectory( wait_for_result=wait_for_result,timeout=tout)
 
+    #
     if result is None:
       self._light.head_yellow()
       print("Trajectory FAILED to send")
       return None
-
+    #
     if not wait_for_result : return True
-
-    if result.result:
-      self._light.head_on()
-    else:
-      self._light.head_red()
-
+    #
+    if result.result: self._light.head_on()
+    else: self._light.head_red()
+    #
     self._motion_trajectory=None
     return result.result
 
+  #
+  # stop motion...
   def stop_trajectory(self):
     if self._motion_trajectory :
       self._motion_trajectory.stop_trajectory()
@@ -437,6 +497,8 @@ class MySawyer(object):
     interaction_options.set_rotations_for_constrained_zeroG(self._rotations_for_constrained_zeroG)
     return interaction_options
 
+  #
+  #
   def set_interaction_mode(self):
     pub = rospy.Publisher('/robot/limb/right/interaction_control_command', InteractionControlCommand, queue_size = 1)
     interaction_options = self.set_interaction_params()
@@ -444,6 +506,8 @@ class MySawyer(object):
       msg=interaction_options.to_msg()
       pub.publish(msg)
 
+  #
+  #
   def get_in_contact_opts(self):
     interaction_options = self.set_interaction_params()
     if interaction_options:
@@ -454,7 +518,6 @@ class MySawyer(object):
       return trajectory_options
     else:
       return None
-
 
 #
 #  LED Light

@@ -49,7 +49,8 @@ class MySawyer(object):
     self._init_pos=[0.0, -1.178, 0.0, 2.178, 0.0, 0.567, 3.313]
     self._default_pos=[0.0, -0.9, 0.0, 1.8, 0.0, -0.9, 0.0]
     self._speed_ratio=0.1 # 0.001 -- 1.0
-    self._accel_ratio=0.5 # 0.001 -- 1.0
+    self._max_speed_ratio=0.5 # 0.001 -- 1.0
+    self._max_accel_ratio=0.5 # 0.001 -- 1.0
     self._trajType='JOINT' # 'JOINT' ot 'CARTESIAN'
     self._interaction_active=True 
     self._K_impedance=[1300.0,1300.0, 1300.0, 30.0, 30.0, 30.0]
@@ -102,6 +103,7 @@ class MySawyer(object):
     self._is_recording=False
     self.max_record_time=30
     self._accuracy=0.05
+    self._recording_intval=0.5
 
     #
     # LED white ON
@@ -219,7 +221,7 @@ class MySawyer(object):
   def start_record(self, value):
      if value:
          print('Start..')
-         self.record_motion(None, 0, 0.1)
+         self.record_motion(None, 0, self._recording_intval)
   #
   #
   def stop_record(self, value):
@@ -327,8 +329,8 @@ class MySawyer(object):
 
     self._motion_trajectory=MotionTrajectory(limb=self._limb)
 
-    _wpt_opts=MotionWaypointOptions(max_joint_speed_ratio=self._speed_ratio,
-                                       max_joint_accel=self._accel_ratio)
+    _wpt_opts=MotionWaypointOptions(max_joint_speed_ratio=self._max_speed_ratio,
+                                       max_joint_accel=self._max_accel_ratio)
     _waypoint=MotionWaypoint(options=_wpt_opts, limb=self._limb)
 
     #

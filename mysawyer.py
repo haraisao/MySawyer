@@ -286,7 +286,7 @@ class MySawyer(object):
   ####################################
   #
   #  Move Motion
-  def move_to(self, target_joints=None, tout=None, with_in_contact=False):
+  def move_to(self, target_joints=None, tout=None, with_in_contact=False, wait_for_result=True):
     #
     # for Motion Controller Interface
     if type(target_joints) == str:
@@ -316,13 +316,14 @@ class MySawyer(object):
         self._motion_trajectory.set_trajectory_options(opts)
 
     self._light.head_green()
-    result=self._motion_trajectory.send_trajectory(timeout=tout)
+    result=self._motion_trajectory.send_trajectory(wait_for_result=wait_for_result,timeout=tout)
 
     if result is None:
       self._light.head_yellow()
       print("Trajectory FAILED to send")
       return None
 
+    if not wait_for_result : return True 
     if result.result:
       self._light.head_on()
     else:
@@ -333,7 +334,7 @@ class MySawyer(object):
 
   #
   #
-  def cart_move_to(self, target_pos, tout=None, relative_mode=False):
+  def cart_move_to(self, target_pos, tout=None, relative_mode=False,  wait_for_result=True):
     #
     # for Motion Controller Interface
     _trajectory_opts=TrajectoryOptions()
@@ -376,13 +377,15 @@ class MySawyer(object):
     self._motion_trajectory.append_waypoint(_waypoint.to_msg())
 
     self._light.head_green()
-    result=self._motion_trajectory.send_trajectory(timeout=tout)
+    result=self._motion_trajectory.send_trajectory( wait_for_result=wait_for_result,timeout=tout)
 
     if result is None:
       self._light.head_yellow()
       print("Trajectory FAILED to send")
       return None
 
+    if not wait_for_result : return True
+      
     if result.result:
       self._light.head_on()
     else:

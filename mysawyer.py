@@ -181,7 +181,7 @@ class MySawyer(object):
       dtime=self.max_record_time
 
     print ("Start Recording:", name)
-    self.head_blue()
+    self._light.head_blue()
 
     self._motions[name]=[]
     self._is_recording=True
@@ -239,7 +239,7 @@ class MySawyer(object):
     self._light.head_green()
     for pos in self._motions[name]:
       if rospy.is_shutdown() :
-        self.head_red()
+        self._light.head_red()
         return
       # 
       self._limb.move_to_joint_positions(pos, threshold=self._accuracy)
@@ -252,10 +252,10 @@ class MySawyer(object):
     for name in names:
       for pos in self._motions[name]:
         if rospy.is_shutdown() :
-          self.head_red()
+          self._light.head_red()
           return
         self._limb.move_to_joint_positions(pos)
-    self_light.head_on()
+    self._light.head_on()
   #
   #
   def list_motions(self):
@@ -385,7 +385,7 @@ class MySawyer(object):
       return None
 
     if not wait_for_result : return True
-      
+
     if result.result:
       self._light.head_on()
     else:
@@ -441,7 +441,7 @@ class MySawyer(object):
     pub = rospy.Publisher('/robot/limb/right/interaction_control_command', InteractionControlCommand, queue_size = 1)
     interaction_options = self.set_interaction_params()
     if interaction_options:
-      msg=ubteraction_options.to_msg()
+      msg=interaction_options.to_msg()
       pub.publish(msg)
 
   def get_in_contact_opts(self):

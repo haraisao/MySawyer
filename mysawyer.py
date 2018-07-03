@@ -3,6 +3,8 @@
 from __future__ import print_function
 import rospy
 import intera_interface
+import numpy as np
+import threading
 
 #
 #
@@ -40,9 +42,19 @@ class MySawyer(object):
     self._cuff=intera_interface.Cuff()
 
     try:
-      self._gripper=intera_interface.Gripper()
+      self._gripper=intera_interface.get_current_gripper_interface()
+      self._is_clicksmart = isinstance(self._gripper, intera_interface.SimpleClickSmartGripper)
+      if self._is_clicksmart:
+        if self._gripper.needs_init():
+          self._gripper.initialize()
+      else:
+        if not (self._gripper.is_calibrated() or
+                self._gripper.calibrate() == True):
+          raise
+
     except:
       self._gripper=None
+      self._is_clicksmart=False
       
     #
     # Default Variables
@@ -106,6 +118,8 @@ class MySawyer(object):
     self._accuracy=0.05
     self._recording_intval=0.5
 
+    self._running=True
+    self._target=[-1, -1.4, 0, 2, 0, 0.5, 3.3]
     #
     # LED white ON
     self._light.head_on()
@@ -523,6 +537,26 @@ class MySawyer(object):
       return trajectory_options
     else:
       return None
+  #
+  #
+  def gripper_open(self):
+    if self._gripper and self._gripper.is_ready():
+      if self._is_clicksmart:
+        self._gripper.set_ee_signal_value('grip', False)
+      else:
+        self._gripper.open()
+  #
+  #
+  def gripper_close(self):
+    if self._gripper and self._gripper.is_ready():
+      if self._is_clicksmart:
+        self._gripper.set_ee_signal_value('grip', True)
+      else:
+        self._gripper.close()
+  #
+  #
+  def terminate(self):
+    self._running=False
 
 #
 #  LED Light
@@ -569,3 +603,34 @@ class SawyerLight(object):
     self._light.set_light_state('head_blue_light',False)
 
   ###########################
+
+
+###
+#
+def maxmin(v, mx, mn):
+  return np.max([np.min([v,mx]), mn])
+
+def vctrl_loop(r, names=None, intval=0.1):
+  if not names:
+    names=r._limb.joint_names()
+
+  cmd={}
+  _pp=True
+  while r._running and (not rospy.is_shutdown()) :
+    cur=r._limb.joint_ordered_angles()
+    dv = np.array(r._target) - np.array(cur)
+    d = np.linalg.norm(dv)
+    if d < 0.1:
+      if _pp:
+        print(cur)
+        _pp=False
+    else:
+      _pp=True
+      vels = map(lambda x: maxmin(x, 0.3, -0.3), dv)  
+      for i in range(len(names)):
+        cmd[names[i]]=vels[i] 
+      r._limb.set_joint_velocities(cmd)
+    rospy.sleep(intval)
+  r._limb.exit_control_mode()
+  print("Terminated")
+   

@@ -118,8 +118,13 @@ class MySawyer(object):
     self._accuracy=0.05
     self._recording_intval=0.5
 
+    # velicity control mode
     self._running=True
     self._target=[-1, -1.4, 0, 2, 0, 0.5, 3.3]
+    self._vctrl_intval=0.1
+    self._vmax=0.3
+    self._vrate=1.0
+
     #
     # LED white ON
     self._light.head_on()
@@ -557,6 +562,12 @@ class MySawyer(object):
   #
   def terminate(self):
     self._running=False
+  #
+  # vctrl_loop
+  def start_vctrl(self):
+    th=threading.Thread(target=vctrl_loop, args(self,))
+    self._running=True
+    th.start()
 
 #
 #  LED Light
@@ -610,27 +621,25 @@ class SawyerLight(object):
 def maxmin(v, mx, mn):
   return np.max([np.min([v,mx]), mn])
 
-def vctrl_loop(r, names=None, intval=0.1):
-  if not names:
-    names=r._limb.joint_names()
-
+def vctrl_loop(r,intval=0.1):
   cmd={}
   _pp=True
   while r._running and (not rospy.is_shutdown()) :
     cur=r._limb.joint_ordered_angles()
-    dv = np.array(r._target) - np.array(cur)
-    d = np.linalg.norm(dv)
+    dv=np.array(r._target) - np.array(cur)
+    d=np.linalg.norm(dv)
     if d < 0.1:
       if _pp:
         print(cur)
         _pp=False
     else:
-      _pp=True
-      vels = map(lambda x: maxmin(x, 0.3, -0.3), dv)  
-      for i in range(len(names)):
-        cmd[names[i]]=vels[i] 
+      vels = map(lambda x: maxmin(x*r._vrate, r._vmax, -r._vmax), dv)  
+      for i,name in enumerate(r._joint_names):
+        cmd[name]=vels[i] 
       r._limb.set_joint_velocities(cmd)
-    rospy.sleep(intval)
+      _pp=True
+
+    rospy.sleep(r._vctrl_intval)
   r._limb.exit_control_mode()
   print("Terminated")
    

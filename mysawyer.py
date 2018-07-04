@@ -19,7 +19,10 @@ from intera_motion_interface import (
     MotionWaypointOptions,
     InteractionOptions
 )
+
 from intera_motion_msgs.msg import TrajectoryOptions
+from std_msgs.msg import String
+
 #from intera_motion_interface.utility_functions import int2bool
 
 #
@@ -128,6 +131,20 @@ class MySawyer(object):
     #
     # LED white ON
     self._light.head_on()
+    self.mkRosPorts()
+
+  #
+  #
+  def mkRosPorts(self):
+    self._sub=dict()
+    self._pub=dict()
+
+    self.sub['target_joint_pos']=rospy.Subscriber('target_joint_pos', String,self.set_target_joint_pos)
+
+    self.pub['current_joint_pos']=rospy.Publisher('current_joint_pos', String,queu_size=1)
+
+
+
   #
   #
   def enable(self):
@@ -170,6 +187,7 @@ class MySawyer(object):
   def set_speed(self, rate=0.3):
     self._speed_ratio=rate
     self._limb.set_joint_position_speed(rate)
+
   #
   #
   def print_joiint_pos(self, dtime=5.0, intval=0.1):
@@ -566,10 +584,41 @@ class MySawyer(object):
     self._vctrl_th=None
   #
   # vctrl_loop
-  def start_vctrl(self):
-    self._vctrl_th=threading.Thread(target=vctrl_loop, args=(self,))
+  def start_vctrl(self, hz=100):
+    #self._vctrl_th=threading.Thread(target=vctrl_loop, args=(self,))
+    self._vctrl_th=threading.Thread(target=self.vctrl_loop, args=(hz,self.report,))
     self._running=True
     self._vctrl_th.start()
+
+  def _vctrl_one_cycle(self, func=None):
+    cmd={}
+    cur=self._limb.joint_ordered_angles()
+    dv=np.array(self._target) - np.array(cur)
+
+    if np.linalg.norm(dv) < self._accuracy:
+      if func:
+        func(self)
+    else:
+      vels = map(lambda x: maxmin(x*self._vrate, self._vmax, -self._vmax), dv)  
+      for i,name in enumerate(self._joint_names):
+        cmd[name]=vels[i] 
+      self._limb.set_joint_velocities(cmd)
+
+  def vctrl_loop(self, hz, func=None):
+    rate=rospy.Rate(hz)
+    while self._running and (not rospy.is_shutdown()) :
+      self._vctrl_one_cycle(func)
+      rate.sleep()
+
+    self._limb.exit_control_mode()
+    print("Terminated")
+   
+  def set_target_joint_pos(self, data):
+    self._target=eval(data.data)
+
+  def report(self,val):
+    cur=self._limb.joint_ordered_angles()
+    self.pub['current_joint_pos'].publish(str(cur)) 
 
 #
 #  LED Light

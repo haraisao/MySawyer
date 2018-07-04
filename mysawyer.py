@@ -562,12 +562,14 @@ class MySawyer(object):
   #
   def terminate(self):
     self._running=False
+    self._vctrl_th.join()
+    self._vctrl_th=None
   #
   # vctrl_loop
   def start_vctrl(self):
-    th=threading.Thread(target=vctrl_loop, args(self,))
+    self._vctrl_th=threading.Thread(target=vctrl_loop, args=(self,))
     self._running=True
-    th.start()
+    self._vctrl_th.start()
 
 #
 #  LED Light

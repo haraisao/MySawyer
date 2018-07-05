@@ -622,11 +622,19 @@ class MySawyer(object):
     cur=self._limb.joint_ordered_angles()
     self._pub['current_joint_pos'].publish(str(cur)) 
 
-  def set_target(self, val):
+  def set_target(self, val, relative=False):
+    if relative:
+      if len(self._target) != len(val) :
+        print("Dimension mismatch")
+        return
+      for i,v in enumerate(self._target):
+        val[i]=v + val[i]
+     
     self._pub['target_joint_pos'].publish(str(val)) 
 
-  def move_joint(self, idx, val):
-    self._target[idx] += val
+  def move_joint(self, idxs, vals):
+    for i,v in enumerate(idxs) :
+      self._target[v] += vals[i]
     self._pub['target_joint_pos'].publish(str(self._target)) 
 
 #

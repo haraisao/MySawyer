@@ -31,8 +31,8 @@ from std_msgs.msg import String
 class MySawyer(object):
   #
   #  Init class
-  def __init__(self, name='MySawyer', limb='right'):
-    rospy.init_node(name, anonymous=True)
+  def __init__(self, name='MySawyer', limb='right', disable_signals=True):
+    rospy.init_node(name, anonymous=True, disable_signals=disable_signals)
     rospy.sleep(1)
     #
     #
@@ -121,15 +121,15 @@ class MySawyer(object):
     self._p_index=0
     self._is_recording=False
     self.max_record_time=30
-    self._accuracy=0.05
+    self._accuracy=0.01  # 0.05
     self._recording_intval=0.5
 
     # velicity control mode
     self._running=True
-    self._target=[-1, -1.4, 0, 2, 0, 0.5, 3.3]
+    self._target=[0, -1.4, 0, 2, 0, 0.5, 3.3]
     self._vctrl_intval=0.1
-    self._vmax=0.3
-    self._vrate=1.0
+    self._vmax=0.4
+    self._vrate=2.0
 
     #
     # LED white ON
@@ -608,11 +608,20 @@ class MySawyer(object):
   def vctrl_loop(self, hz, func=None):
     rate=rospy.Rate(hz)
     self._running=True
+    repos=False
     while self._running and (not rospy.is_shutdown()) :
-      self._vctrl_one_cycle(func)
+      cuff_state=self._cuff.cuff_button()
+      if cuff_state :
+        self.set_target()
+      elif self._limb.has_collided() :
+        self.set_target()
+        #self._limb.exit_control_mode()
+      else:
+        self._vctrl_one_cycle(func)
+
       rate.sleep()
 
-    self._limb.exit_control_mode()
+    #self._limb.exit_control_mode()
     print("Terminated")
    
   def set_target_joint_pos(self, data):
@@ -622,14 +631,18 @@ class MySawyer(object):
     cur=self._limb.joint_ordered_angles()
     self._pub['current_joint_pos'].publish(str(cur)) 
 
-  def set_target(self, val, relative=False):
-    if relative:
+  def set_target(self, val=None, relative=False):
+    if val is None:
+      val=self._limb.joint_ordered_angles()
+    if type(val) is str:
+      val=self._joint_positions[val]
+    elif relative:
       if len(self._target) != len(val) :
         print("Dimension mismatch")
         return
       for i,v in enumerate(self._target):
         val[i]=v + val[i]
-     
+    
     self._pub['target_joint_pos'].publish(str(val)) 
 
   def move_joint(self, idxs, vals):

@@ -148,7 +148,6 @@ class MySawyer(object):
     self._pub['target_joint_pos']=rospy.Publisher('target_joint_pos', String,queue_size=1)
 
 
-
   #
   #
   def enable(self):
@@ -589,9 +588,7 @@ class MySawyer(object):
   #
   # vctrl_loop
   def start_vctrl(self, hz=100):
-    #self._vctrl_th=threading.Thread(target=vctrl_loop, args=(self,))
     self._vctrl_th=threading.Thread(target=self.vctrl_loop, args=(hz,self.report,))
-    self._running=True
     self._vctrl_th.start()
 
   def _vctrl_one_cycle(self, func=None):
@@ -610,6 +607,7 @@ class MySawyer(object):
 
   def vctrl_loop(self, hz, func=None):
     rate=rospy.Rate(hz)
+    self._running=True
     while self._running and (not rospy.is_shutdown()) :
       self._vctrl_one_cycle(func)
       rate.sleep()
@@ -683,25 +681,3 @@ class SawyerLight(object):
 def maxmin(v, mx, mn):
   return np.max([np.min([v,mx]), mn])
 
-def vctrl_loop(r,intval=0.1):
-  cmd={}
-  _pp=True
-  while r._running and (not rospy.is_shutdown()) :
-    cur=r._limb.joint_ordered_angles()
-    dv=np.array(r._target) - np.array(cur)
-    d=np.linalg.norm(dv)
-    if d < 0.1:
-      if _pp:
-        print(cur)
-        _pp=False
-    else:
-      vels = map(lambda x: maxmin(x*r._vrate, r._vmax, -r._vmax), dv)  
-      for i,name in enumerate(r._joint_names):
-        cmd[name]=vels[i] 
-      r._limb.set_joint_velocities(cmd)
-      _pp=True
-
-    rospy.sleep(r._vctrl_intval)
-  r._limb.exit_control_mode()
-  print("Terminated")
-   

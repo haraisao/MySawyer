@@ -32,17 +32,20 @@ class MySawyer(object):
   #
   #  Init class
   def __init__(self, name='MySawyer', limb='right'):
-    rospy.init_node(name)
+    rospy.init_node(name, anonymous=True)
     rospy.sleep(1)
     #
     #
-    self._limb=intera_interface.Limb(limb)
-    self._head=intera_interface.Head()
+    try:
+      self._limb=intera_interface.Limb(limb)
+      self._head=intera_interface.Head()
 
-    self._light=SawyerLight()
+      self._light=SawyerLight()
     
-    self._display=intera_interface.HeadDisplay()
-    self._cuff=intera_interface.Cuff()
+      self._display=intera_interface.HeadDisplay()
+      self._cuff=intera_interface.Cuff()
+    except:
+      pass
 
     try:
       self._gripper=intera_interface.get_current_gripper_interface()
@@ -139,9 +142,10 @@ class MySawyer(object):
     self._sub=dict()
     self._pub=dict()
 
-    self.sub['target_joint_pos']=rospy.Subscriber('target_joint_pos', String,self.set_target_joint_pos)
+    self._sub['target_joint_pos']=rospy.Subscriber('target_joint_pos', String,self.set_target_joint_pos)
 
-    self.pub['current_joint_pos']=rospy.Publisher('current_joint_pos', String,queu_size=1)
+    self._pub['current_joint_pos']=rospy.Publisher('current_joint_pos', String,queue_size=1)
+    self._pub['target_joint_pos']=rospy.Publisher('target_joint_pos', String,queue_size=1)
 
 
 
@@ -618,7 +622,14 @@ class MySawyer(object):
 
   def report(self,val):
     cur=self._limb.joint_ordered_angles()
-    self.pub['current_joint_pos'].publish(str(cur)) 
+    self._pub['current_joint_pos'].publish(str(cur)) 
+
+  def set_target(self, val):
+    self._pub['target_joint_pos'].publish(str(val)) 
+
+  def move_joint(self, idx, val):
+    self._target[idx] += val
+    self._pub['target_joint_pos'].publish(str(self._target)) 
 
 #
 #  LED Light

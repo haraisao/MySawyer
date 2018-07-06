@@ -246,6 +246,7 @@ class MySawyer(object):
     print ("End Recording: record ", len(self._motions[name]), " points")
     self._is_recording=False
     self._light.head_on()
+
   #
   #
   def mk_motion_name(self):
@@ -255,6 +256,8 @@ class MySawyer(object):
       name = 'Motion_' + str(self._index)
     return name
 
+  #
+  #  Record positions
   def record_pos(self,val):
     if val :
       self._light.head_yellow()
@@ -266,19 +269,19 @@ class MySawyer(object):
       self._light.head_on()
 
   #
-  #  Motion Recorder Event Handleer
+  #  Motion Recorder Event Handleer(Start)
   def start_record(self, value):
      if value:
          print('Start..')
          self.record_motion(None, 0, self._recording_intval)
   #
-  #
+  #  Motion Recorder Event Handler(Stop)
   def stop_record(self, value):
      if value:
          print('Stop..')
          self._is_recording=False
   #
-  #  set Handler
+  #  set Event Handlers
   def set_record(self):
      print ("Register callbacks")
      self.ok_id=self._navigator.register_callback(self.start_record, 'right_button_ok')
@@ -286,7 +289,7 @@ class MySawyer(object):
      self.square_id=self._navigator.register_callback(self.record_pos, 'right_button_square')
      self.show_id=self._navigator.register_callback(self.unset_record, 'right_button_show')
   #
-  # unset Handler
+  # unset Event Handlers
   def unset_record(self, value=0):
     if value and self.ok_id :
       print ("Unregister all callbacks")
@@ -297,7 +300,7 @@ class MySawyer(object):
   
   #######################################################
   #
-  #
+  # For Joint Position mode (before SDK-5.2)
   def play_motion(self, name, intval=0.0):
     self._limb.set_joint_position_speed(self._speed_ratio)
     self._light.head_green()
@@ -321,6 +324,7 @@ class MySawyer(object):
           return
         self._limb.move_to_joint_positions(pos)
     self._light.head_on()
+  ###############################################  
   #
   #
   def list_motions(self):
@@ -332,8 +336,6 @@ class MySawyer(object):
 
   def convert_motion(self, name):
     return map(lambda x: self.joint_pos_d2l(x), self._motions[name])
-
-  #############################################
   #
   #
   def save_motion(self, name):
@@ -349,8 +351,8 @@ class MySawyer(object):
       motion=f.readlines()
     for p in motion:
       self._motions[name].append( eval(p) )
-
-
+  #
+  #
   def get_joint_positions(self, name):
     if type(name) == str:
       if name in self._joint_positions:
@@ -361,7 +363,6 @@ class MySawyer(object):
     elif len(name) == 7:
       target_joints=name
     return  target_joints
-
   ####################################
   #
   #  Move Motion
@@ -381,12 +382,10 @@ class MySawyer(object):
     _wpt_opts=MotionWaypointOptions(max_joint_speed_ratio=self._max_speed_ratio,
                                        max_joint_accel=self._max_accel_ratio)
     _waypoint=MotionWaypoint(options=_wpt_opts, limb=self._limb)
-
     #
     # set current joint position...
     _waypoint.set_joint_angles(joint_angles=self._limb.joint_ordered_angles())
     self._motion_trajectory.append_waypoint(_waypoint.to_msg())
-
     #
     # set target joint position...
     for pos in waypoints:
@@ -398,19 +397,16 @@ class MySawyer(object):
       else:
         _waypoint.set_joint_angles(joint_angles=pos)
         self._motion_trajectory.append_waypoint(_waypoint.to_msg())
-
     #
     #
     if with_in_contact :
       opts=self.get_in_contact_opts()
       if opts :
         self._motion_trajectory.set_trajectory_options(opts)
-
     #
     # run motion...
     self._light.head_green()
     result=self._motion_trajectory.send_trajectory(wait_for_result=wait_for_result,timeout=tout)
-
     #
     #
     if result is None:
@@ -420,18 +416,15 @@ class MySawyer(object):
     #
     #
     if not wait_for_result : return True
-
     #
     if result.result: self._light.head_on()
     else: self._light.head_red()
-
     #
     #
     self._motion_trajectory=None
             return result.result
-
   #
-  #
+  #  Move in Certecian Mode
   def cart_move_to(self, target_pos, tout=None, relative_mode=False,  wait_for_result=True):
     #
     # for Motion Controller Interface
@@ -440,8 +433,8 @@ class MySawyer(object):
 
     #
     self._motion_trajectory=MotionTrajectory(trajectory_options=_trajectory_opts, limb=self._limb)
-
     #
+    # set Waypoint Options
     _wpt_opts=MotionWaypointOptions(max_linear_speed=self._linear_speed,
                                        max_linear_accel=self._linear_accel,
                                        max_rotational_speed=self._rotational_speed,
@@ -508,7 +501,6 @@ class MySawyer(object):
   def stop_trajectory(self):
     if self._motion_trajectory :
       self._motion_trajectory.stop_trajectory()
-
   #
   #  set Interaction control
   def set_interaction_params(self):
@@ -569,6 +561,7 @@ class MySawyer(object):
       return trajectory_options
     else:
       return None
+  ##############################################################
   #
   #  Open the gripper
   def gripper_open(self):
@@ -585,6 +578,7 @@ class MySawyer(object):
         self._gripper.set_ee_signal_value('grip', True)
       else:
         self._gripper.close()
+  ###############################################################
   #
   #   stop the thread of velocity control loop 
   def stop_vctrl(self):
@@ -630,18 +624,17 @@ class MySawyer(object):
     self._limb.exit_control_mode()
     print("Terminated")
   #
-  #
+  # callback function for Subscriber
   def set_target_joint_pos(self, data):
     self._target=eval(data.data)
-
   #
-  #
+  #  Publish current position
   def report(self,val):
     cur=self._limb.joint_ordered_angles()
     self._pub['current_joint_pos'].publish(str(cur)) 
 
   #
-  # set target joint positions
+  # Set target joint positions (Publish target joint positions)
   def set_target(self, val=None, relative=False):
     if val is None:
       val=self._limb.joint_ordered_angles()
@@ -657,12 +650,13 @@ class MySawyer(object):
     self._pub['target_joint_pos'].publish(str(val)) 
 
   #
-  #  set movement of target joint posistions
+  #  Set movement of target joint posistions
   def move_joint(self, idxs, vals):
     for i,v in enumerate(idxs) :
       self._target[v] += vals[i]
     self._pub['target_joint_pos'].publish(str(self._target)) 
 
+########################################################################
 #
 #  LED Light of the Head
 #
@@ -670,9 +664,8 @@ class SawyerLight(object):
   def __init__(self, enabled=True):
     self._light=intera_interface.Lights()
     self._enabled=enabled
-
   #
-  #
+  # if you use with Gazebo simulator, you would be disable light...
   def enabled(self, val=True):
     self._enabled=val 
   #
@@ -705,14 +698,14 @@ class SawyerLight(object):
       self._light.set_light_state('head_blue_light',False)
       self._light.set_light_state('head_red_light',True)
   #
-  #
+  #  White
   def head_on(self):
     if self._enabled:
       self._light.set_light_state('head_red_light',True)
       self._light.set_light_state('head_green_light',True)
       self._light.set_light_state('head_blue_light',True)
   #
-  #
+  # Turn off
   def head_off(self):
     if self._enabled:
       self._light.set_light_state('head_red_light',False)

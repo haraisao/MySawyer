@@ -656,6 +656,22 @@ class MySawyer(object):
       self._target[v] += vals[i]
     self._pub['target_joint_pos'].publish(str(self._target)) 
 
+  #
+  #
+  def convert_Cart2Joint(self, x,y,z):
+    _pose=self._limb.endpoint_pose()
+    _pose.position.x = x
+    _pose.position.y = y
+    _pose.position.z = z
+    return self._limb.ik_request(_pose)
+  #
+  #
+  def convert_Joint2Cart(self, pos):
+    _pos=self._limb.joint_positions()
+    for i,name in enumerate(self._joint_names):
+      _pos[name]=pos[i]
+    return self._limb.fk_request(_pos)
+
 ########################################################################
 #
 #  LED Light of the Head
@@ -715,8 +731,8 @@ class SawyerLight(object):
   ###########################
 
 
-###
-#
+####################################
+#  Function....
 def maxmin(v, mx, mn):
   return np.max([np.min([v,mx]), mn])
 

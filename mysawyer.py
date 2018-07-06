@@ -428,7 +428,7 @@ class MySawyer(object):
     #
     #
     self._motion_trajectory=None
-    return result.result
+            return result.result
 
   #
   #

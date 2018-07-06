@@ -558,7 +558,7 @@ class MySawyer(object):
       pub.publish(msg)
 
   #
-  #
+  # 
   def get_in_contact_opts(self):
     interaction_options = self.set_interaction_params()
     if interaction_options:
@@ -570,7 +570,7 @@ class MySawyer(object):
     else:
       return None
   #
-  #
+  #  Open the gripper
   def gripper_open(self):
     if self._gripper and self._gripper.is_ready():
       if self._is_clicksmart:
@@ -578,7 +578,7 @@ class MySawyer(object):
       else:
         self._gripper.open()
   #
-  #
+  #  Close the gripper
   def gripper_close(self):
     if self._gripper and self._gripper.is_ready():
       if self._is_clicksmart:
@@ -586,17 +586,19 @@ class MySawyer(object):
       else:
         self._gripper.close()
   #
-  #
-  def terminate(self):
+  #   stop the thread of velocity control loop 
+  def stop_vctrl(self):
     self._running=False
     self._vctrl_th.join()
     self._vctrl_th=None
+
   #
-  # vctrl_loop
+  # start vctrl_loop with Thread
   def start_vctrl(self, hz=100):
     self._vctrl_th=threading.Thread(target=self.vctrl_loop, args=(hz,self.report,))
     self._vctrl_th.start()
-
+  #
+  # velocity control mode, one cycle
   def _vctrl_one_cycle(self, func=None):
     cmd={}
     cur=self._limb.joint_ordered_angles()
@@ -610,33 +612,36 @@ class MySawyer(object):
       for i,name in enumerate(self._joint_names):
         cmd[name]=vels[i] 
       self._limb.set_joint_velocities(cmd)
-
+  #
+  #  velocity control loop
   def vctrl_loop(self, hz, func=None):
     rate=rospy.Rate(hz)
     self._running=True
-    repos=False
+
     while self._running and (not rospy.is_shutdown()) :
       cuff_state=self._cuff.cuff_button()
       if cuff_state :
         self.set_target()
       elif self._limb.has_collided() :
         self.set_target()
-        #self._limb.exit_control_mode()
       else:
         self._vctrl_one_cycle(func)
-
       rate.sleep()
-
-    #self._limb.exit_control_mode()
+    self._limb.exit_control_mode()
     print("Terminated")
-   
+  #
+  #
   def set_target_joint_pos(self, data):
     self._target=eval(data.data)
 
+  #
+  #
   def report(self,val):
     cur=self._limb.joint_ordered_angles()
     self._pub['current_joint_pos'].publish(str(cur)) 
 
+  #
+  # set target joint positions
   def set_target(self, val=None, relative=False):
     if val is None:
       val=self._limb.joint_ordered_angles()
@@ -651,13 +656,15 @@ class MySawyer(object):
     
     self._pub['target_joint_pos'].publish(str(val)) 
 
+  #
+  #  set movement of target joint posistions
   def move_joint(self, idxs, vals):
     for i,v in enumerate(idxs) :
       self._target[v] += vals[i]
     self._pub['target_joint_pos'].publish(str(self._target)) 
 
 #
-#  LED Light
+#  LED Light of the Head
 #
 class SawyerLight(object):
   def __init__(self, enabled=True):

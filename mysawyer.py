@@ -31,8 +31,8 @@ from std_msgs.msg import String
 class MySawyer(object):
   #
   #  Init class
-  def __init__(self, name='MySawyer', limb='right', disable_signals=True):
-    rospy.init_node(name, anonymous=True, disable_signals=disable_signals)
+  def __init__(self, name='MySawyer', limb='right', anonymous=True, disable_signals=True, light=True):
+    rospy.init_node(name, anonymous=anonymous, disable_signals=disable_signals)
     rospy.sleep(1)
     #
     #
@@ -40,7 +40,7 @@ class MySawyer(object):
       self._limb=intera_interface.Limb(limb)
       self._head=intera_interface.Head()
 
-      self._light=SawyerLight()
+      self._light=SawyerLight(light)
     
       self._display=intera_interface.HeadDisplay()
       self._cuff=intera_interface.Cuff()
@@ -66,6 +66,29 @@ class MySawyer(object):
     # Default Variables
     self._init_pos=[0.0, -1.178, 0.0, 2.178, 0.0, 0.567, 3.313]
     self._default_pos=[0.0, -0.9, 0.0, 1.8, 0.0, -0.9, 0.0]
+    self._joint_names=self._limb.joint_names()
+    self._motion_trajectory=None
+
+    #
+    #  for motion controller 
+    self._motions={}
+    self._joint_positions={'init':self._init_pos, 'default':self._default_pos}
+    self._index=0
+    self._p_index=0
+    self._is_recording=False
+    self.max_record_time=30
+    self._accuracy=0.01  # 0.05 this value use velocity control mode and position control mode
+    self._recording_intval=0.5
+
+    #
+    # for velicity control mode
+    self._running=True
+    self._target=[0, -1.4, 0, 2, 0, 0.5, 3.3] ### initial position 
+    self._vmax=0.4
+    self._vrate=2.0
+
+    #
+    # for interaction mode
     self._speed_ratio=0.1 # 0.001 -- 1.0
     self._max_speed_ratio=0.5 # 0.001 -- 1.0
     self._max_accel_ratio=0.5 # 0.001 -- 1.0
@@ -84,18 +107,13 @@ class MySawyer(object):
     self._rotations_for_constrained_zeroG=False
     self._timeout=None
 
-    # for Cartesian Pose
+    # for Cartesian Pose base motion
     self._in_tip_frame=False
     self._tip_name='right_hand'
     self._linear_speed=0.6     # m/s
     self._linear_accel=0.6     # m/s/s
     self._rotational_speed=1.57  # rad/s
     self._rotational_accel=1.57  # rad/s/s
-    #
-    #  Enable Robot
-    self._rs=intera_interface.RobotEnable(intera_interface.CHECK_VERSION)
-    self._init_state=self._rs.state().enabled
-    self._rs.enable()
 
     ## for event handlers
     self._navigator=intera_interface.Navigator()
@@ -103,33 +121,21 @@ class MySawyer(object):
     self.show_id=None
     self.back_id=None
 
+
     #
+    #  Enable Robot
+    self._rs=intera_interface.RobotEnable(intera_interface.CHECK_VERSION)
+    self._init_state=self._rs.state().enabled
+    self._rs.enable()
+
     #
+    #  current positions
     self._angles=self._limb.joint_angles()
     self._pose=self._limb.endpoint_pose()
-
-    self._joint_names=self._limb.joint_names()
-    self._motion_trajectory=None
+ 
     #
     #
-
     self._limb.set_joint_position_speed(self._speed_ratio)
-
-    self._motions={}
-    self._joint_positions={'init':self._init_pos, 'default':self._default_pos}
-    self._index=0
-    self._p_index=0
-    self._is_recording=False
-    self.max_record_time=30
-    self._accuracy=0.01  # 0.05
-    self._recording_intval=0.5
-
-    # velicity control mode
-    self._running=True
-    self._target=[0, -1.4, 0, 2, 0, 0.5, 3.3]
-    self._vctrl_intval=0.1
-    self._vmax=0.4
-    self._vrate=2.0
 
     #
     # LED white ON
@@ -654,45 +660,57 @@ class MySawyer(object):
 #  LED Light
 #
 class SawyerLight(object):
-  def __init__(self):
+  def __init__(self, enabled=True):
     self._light=intera_interface.Lights()
+    self._enabled=enabled
+
+  #
+  #
+  def enabled(self, val=True):
+    self._enabled=val 
   #
   #  Right
   ###########################
   def head_yellow(self):
-    self._light.set_light_state('head_blue_light',False)
-    self._light.set_light_state('head_red_light',True)
-    self._light.set_light_state('head_green_light',True)
+    if self._enabled:
+      self._light.set_light_state('head_blue_light',False)
+      self._light.set_light_state('head_red_light',True)
+      self._light.set_light_state('head_green_light',True)
   #
   #
   def head_blue(self):
-    self._light.set_light_state('head_red_light',False)
-    self._light.set_light_state('head_green_light',False)
-    self._light.set_light_state('head_blue_light',True)
+    if self._enabled:
+      self._light.set_light_state('head_red_light',False)
+      self._light.set_light_state('head_green_light',False)
+      self._light.set_light_state('head_blue_light',True)
   #
   #
   def head_green(self):
-    self._light.set_light_state('head_red_light',False)
-    self._light.set_light_state('head_blue_light',False)
-    self._light.set_light_state('head_green_light',True)
+    if self._enabled:
+      self._light.set_light_state('head_red_light',False)
+      self._light.set_light_state('head_blue_light',False)
+      self._light.set_light_state('head_green_light',True)
   #
   #
   def head_red(self):
-    self._light.set_light_state('head_green_light',False)
-    self._light.set_light_state('head_blue_light',False)
-    self._light.set_light_state('head_red_light',True)
+    if self._enabled:
+      self._light.set_light_state('head_green_light',False)
+      self._light.set_light_state('head_blue_light',False)
+      self._light.set_light_state('head_red_light',True)
   #
   #
   def head_on(self):
-    self._light.set_light_state('head_red_light',True)
-    self._light.set_light_state('head_green_light',True)
-    self._light.set_light_state('head_blue_light',True)
+    if self._enabled:
+      self._light.set_light_state('head_red_light',True)
+      self._light.set_light_state('head_green_light',True)
+      self._light.set_light_state('head_blue_light',True)
   #
   #
   def head_off(self):
-    self._light.set_light_state('head_red_light',False)
-    self._light.set_light_state('head_green_light',False)
-    self._light.set_light_state('head_blue_light',False)
+    if self._enabled:
+      self._light.set_light_state('head_red_light',False)
+      self._light.set_light_state('head_green_light',False)
+      self._light.set_light_state('head_blue_light',False)
 
   ###########################
 

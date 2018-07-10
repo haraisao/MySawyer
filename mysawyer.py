@@ -156,6 +156,11 @@ class MySawyer(object):
 
   #
   #
+  def set_motion_sequencer(self):
+    self.set_subscriber('current_joint_pos', self.set_next_target, String)
+  
+  #
+  #
   def set_subscriber(self, name, func, arg_type=String):
     if name in self._sub and self._sub[name]: self._sub[name].unregister()
     self._sub[name]=rospy.Subscriber(name, arg_type,func)
@@ -648,14 +653,12 @@ class MySawyer(object):
   # 
   def set_next_target(self, data):
     try:
+      self.unset_subscriber('current_joint_pos')
       next_target=self._target_motion.pop(0)
-      if type(next_target) is str:
-        self._target=self._joint_positions[next_target]
-      elif type(next_target) is list:
-        self._target=next_target
-      else:
-        pass
+      self.set_target(next_target)
+      self.set_motion_sequencer()
     except:
+      self.unset_subscriber('current_joint_pos')
       pass
   #
   #  Publish current position
@@ -679,10 +682,18 @@ class MySawyer(object):
     
     self._pub['target_joint_pos'].publish(str(val)) 
 
+  def set_target_seq(self, targets):
+    self._target_motion=targets
+    self.set_next_target('star')
+
+  def show_positions(self):
+    print(self._joint_positions.keys())
+
   #
-  def set_cart_target(self, x,y,z, relative=False, end_point='right_hand'):
-    pose = self.convert_Cart2Joint(x,y,z, relativa, end_point)
-    val=self.joint_pos_d2l(pose)
+  def set_cart_target(self, x,y,z,roll=9,pitch=0,yew=0, in_tip_frame=True):
+    #pose = self.convert_Cart2Joint(x,y,z, relativa, end_point)
+    pos=self.calc_cart_move2joints(x,y,z,roll, pitch,yew, in_tip_frame=in_tip_frame)
+    val=self.joint_pos_d2l(pos)
     self._pub['target_joint_pos'].publish(str(val)) 
 
 
@@ -736,7 +747,7 @@ class MySawyer(object):
     return _pose
 
   def calc_cart_move2joints(self, x,y,z,roll=0,pitch=0,yew=0, in_tip_frame=True):
-    _pose=calc_relative_pose(x,y,z,roll,pitch,yew, in_tip_frame)
+    _pose=self.calc_relative_pose(x,y,z,roll,pitch,yew, in_tip_frame)
     return self._limb.ik_request(_pose)
 
 ########################################################################

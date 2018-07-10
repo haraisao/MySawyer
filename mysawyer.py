@@ -84,6 +84,7 @@ class MySawyer(object):
     # for velicity control mode
     self._running=True
     self._target=[0, -1.4, 0, 2, 0, 0.5, 3.3] ### initial position 
+    self._target_motion=[]
     self._vmax=0.4
     self._vrate=2.0
 
@@ -153,7 +154,15 @@ class MySawyer(object):
     self._pub['current_joint_pos']=rospy.Publisher('current_joint_pos', String,queue_size=1)
     self._pub['target_joint_pos']=rospy.Publisher('target_joint_pos', String,queue_size=1)
 
+  #
+  #
+  def set_subscriber(self, name, func, arg_type=String):
+    if name in self._sub and self._sub[name]: self._sub[name].unregister()
+    self._sub[name]=rospy.Subscriber(name, arg_type,func)
 
+  def unset_subscriber(self, name):
+    if name in self._sub and self._sub[name]: self._sub[name].unregister()
+    self._sub[name]=None
   #
   #
   def enable(self):
@@ -174,6 +183,11 @@ class MySawyer(object):
   #
   def stop(self):
     self._rs.stop()
+
+  #
+  #
+  def exit_control_mode(self):
+    self._limb.exit_control_mode()
 
   #
   #
@@ -209,6 +223,7 @@ class MySawyer(object):
   ##############################################
   # Joint Position Control (Depreciated for Intera 5.2 and beyond)
   def move_joints(self, pos):
+    self._limb.exit_control_mode()
     self._light.head_green()
     self._limb.move_to_joint_positions(pos)
     self.update_pose()
@@ -216,7 +231,8 @@ class MySawyer(object):
   #
   #
   def move_cart(self, x_dist, y_dist, z_dist):
-    self._pose=self._limb.endpoint_pose()
+    self._limb.exit_control_mode()
+    self._pose=self.endpoint_pose()
     self._pose.position.x += x_dist
     self._pose.position.y += y_dist
     self._pose.position.z += z_dist
@@ -422,7 +438,7 @@ class MySawyer(object):
     #
     #
     self._motion_trajectory=None
-            return result.result
+    return result.result
   #
   #  Move in Certecian Mode
   def cart_move_to(self, target_pos, tout=None, relative_mode=False,  wait_for_result=True):
@@ -627,6 +643,20 @@ class MySawyer(object):
   # callback function for Subscriber
   def set_target_joint_pos(self, data):
     self._target=eval(data.data)
+
+  #
+  # 
+  def set_next_target(self, data):
+    try:
+      next_target=self._target_motion.pop(0)
+      if type(next_target) is str:
+        self._target=self._joint_positions[next_target]
+      elif type(next_target) is list:
+        self._target=next_target
+      else:
+        pass
+    except:
+      pass
   #
   #  Publish current position
   def report(self,val):
@@ -650,6 +680,13 @@ class MySawyer(object):
     self._pub['target_joint_pos'].publish(str(val)) 
 
   #
+  def set_cart_target(self, x,y,z, relative=False, end_point='right_hand'):
+    pose = self.convert_Cart2Joint(x,y,z, relativa, end_point)
+    val=self.joint_pos_d2l(pose)
+    self._pub['target_joint_pos'].publish(str(val)) 
+
+
+  #
   #  Set movement of target joint posistions
   def move_joint(self, idxs, vals):
     for i,v in enumerate(idxs) :
@@ -657,20 +694,50 @@ class MySawyer(object):
     self._pub['target_joint_pos'].publish(str(self._target)) 
 
   #
-  #
-  def convert_Cart2Joint(self, x,y,z):
-    _pose=self._limb.endpoint_pose()
-    _pose.position.x = x
-    _pose.position.y = y
-    _pose.position.z = z
-    return self._limb.ik_request(_pose)
+  # end_point should be 'right_hand' or 'right_arm_base_link'.
+  def convert_Cart2Joint(self, x,y,z, relative=False, end_point='right_hand'):
+    _pose=self.endpoint_pose()
+    if relative:
+      _pose.position.x += x
+      _pose.position.y += y
+      _pose.position.z += z
+    else:
+      _pose.position.x = x
+      _pose.position.y = y
+      _pose.position.z = z
+    return self._limb.ik_request(_pose, end_point=end_point)
   #
   #
   def convert_Joint2Cart(self, pos):
-    _pos=self._limb.joint_positions()
+    _pos=self._limb.joint_angles()
     for i,name in enumerate(self._joint_names):
       _pos[name]=pos[i]
-    return self._limb.fk_request(_pos)
+    return self._limb.joint_angles_to_cartesian_pose(_pos)
+
+  def endpoint_pose(self):
+    return self._limb.tip_state('right_hand').pose
+    #return self._limb.joint_angles_to_cartesian_pose(self._limb.joint_angles())
+
+  def calc_relative_pose(self, x,y,z,roll=0,pitch=0,yew=0, in_tip_frame=True):
+    _pose=self.endpoint_pose()
+    ########################################
+    #  set target position
+    trans = PyKDL.Vector(x,y,z)
+    rot = PyKDL.Rotation.RPY(roll,pitch,yew)
+    f2 = PyKDL.Frame(rot, trans)
+
+    if in_tip_frame:
+      # endpoint's cartesian systems
+      _pose=posemath.toMsg(posemath.fromMsg(_pose) * f2)
+    else:
+      # base's cartesian systems
+      _pose=posemath.toMsg(f2 * posemath.fromMsg(_pose))
+
+    return _pose
+
+  def calc_cart_move2joints(self, x,y,z,roll=0,pitch=0,yew=0, in_tip_frame=True):
+    _pose=calc_relative_pose(x,y,z,roll,pitch,yew, in_tip_frame)
+    return self._limb.ik_request(_pose)
 
 ########################################################################
 #

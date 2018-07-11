@@ -44,6 +44,8 @@ class MySawyer(object):
     
       self._display=intera_interface.HeadDisplay()
       self._cuff=intera_interface.Cuff()
+
+      self._limits=intera_interface.JointLimits()
     except:
       pass
 
@@ -57,7 +59,6 @@ class MySawyer(object):
         if not (self._gripper.is_calibrated() or
                 self._gripper.calibrate() == True):
           raise
-
     except:
       self._gripper=None
       self._is_clicksmart=False
@@ -68,6 +69,7 @@ class MySawyer(object):
     self._default_pos=[0.0, -0.9, 0.0, 1.8, 0.0, -0.9, 0.0]
     self._joint_names=self._limb.joint_names()
     self._motion_trajectory=None
+    self._velocity_limits=self._limits.joint_velocity_limits()
 
     #
     #  for motion controller 
@@ -228,7 +230,7 @@ class MySawyer(object):
   ##############################################
   # Joint Position Control (Depreciated for Intera 5.2 and beyond)
   def move_joints(self, pos):
-    self._limb.exit_control_mode()
+    self._limb.set_joint_position_speed(self._speed_ratio)
     self._light.head_green()
     self._limb.move_to_joint_positions(pos)
     self.update_pose()
@@ -236,7 +238,7 @@ class MySawyer(object):
   #
   #
   def move_cart(self, x_dist, y_dist, z_dist):
-    self._limb.exit_control_mode()
+    self._limb.set_joint_position_speed(self._speed_ratio)
     self._pose=self.endpoint_pose()
     self._pose.position.x += x_dist
     self._pose.position.y += y_dist
@@ -623,9 +625,9 @@ class MySawyer(object):
       if func:
         func(self)
     else:
-      vels = map(lambda x: maxmin(x*self._vrate, self._vmax, -self._vmax), dv)  
+      vels = map(lambda x: x*self._vrate, dv)  
       for i,name in enumerate(self._joint_names):
-        cmd[name]=vels[i] 
+        cmd[name]=maxmin(vels[i] , self._velocity_limits[name]*self._vmax, -self._velocity_limits[name]*self._vmax)
       self._limb.set_joint_velocities(cmd)
   #
   #  velocity control loop

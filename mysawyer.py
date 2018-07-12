@@ -5,6 +5,8 @@ import rospy
 import intera_interface
 import numpy as np
 import threading
+import cv2
+import cv_bridge
 
 #
 #
@@ -23,7 +25,7 @@ from intera_motion_interface import (
 from intera_motion_msgs.msg import TrajectoryOptions
 from std_msgs.msg import String
 
-#from intera_motion_interface.utility_functions import int2bool
+from sensor_msgs.msg import Image
 
 #
 #
@@ -42,7 +44,8 @@ class MySawyer(object):
 
       self._light=SawyerLight(light)
     
-      self._display=intera_interface.HeadDisplay()
+      self._head_display=intera_interface.HeadDisplay()
+      self._display=SawyerDisplay()
       self._cuff=intera_interface.Cuff()
 
       self._limits=intera_interface.JointLimits()
@@ -155,6 +158,7 @@ class MySawyer(object):
 
     self._pub['current_joint_pos']=rospy.Publisher('current_joint_pos', String,queue_size=1)
     self._pub['target_joint_pos']=rospy.Publisher('target_joint_pos', String,queue_size=1)
+    self._pub['image']=rospy.Publisher('/robot/head_display', Image, latch=True, queue_size=10)
 
   #
   #
@@ -810,7 +814,44 @@ class SawyerLight(object):
 
   ###########################
 
+#########
+class SawyerDisplay(object):
+  def __init__(self):
+    self._image_pub=rospy.Publisher('/robot/head_display', Image, latch=True, queue_size=10)
 
+    self._image=self.mkImage()
+    self._sdk_img='sawyer_sdk_research.png'
+
+  def mkImage(self, val=128):
+    img=np.full((600,1024,3), val, dtype=np.uint8)
+    return img
+
+  def clear(self):
+    self._image=self.mkImage()
+    self.update()
+
+  def update(self):
+    self.showImage()
+
+  def putText(self, txt, x, l, clear=False):
+    if clear: self._image=self.mkImage()
+    pos=(20+x, l*50)
+    cv2.putText(self._image, txt, pos, cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255,255,255), 2, cv2.LINE_AA)
+    self.update()
+
+  def showDefault(self):
+    self.showImage(self._sdk_img)
+
+  def showImage(self, img=None):
+    if img is None:
+      img=self._image
+    elif type(img) is str:
+      img=cv2.imread('images/'+img)
+
+    if not rospy.is_shutdown():
+      cv_img=cv_bridge.CvBridge().cv2_to_imgmsg(img, encoding="bgr8")
+      self._image_pub.publish(cv_img)
+      
 ####################################
 #  Function....
 def maxmin(v, mx, mn):

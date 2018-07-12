@@ -8,6 +8,7 @@ import threading
 import cv2
 import cv_bridge
 
+
 #
 #
 from intera_core_msgs.msg import InteractionControlCommand
@@ -147,6 +148,7 @@ class MySawyer(object):
     # LED white ON
     self._light.head_on()
     self.mkRosPorts()
+    self.set_record()
 
   #
   #
@@ -815,15 +817,28 @@ class SawyerLight(object):
   ###########################
 
 #########
+import PIL.Image,PIL.ImageFont, PIL.ImageDraw
+
 class SawyerDisplay(object):
   def __init__(self):
     self._image_pub=rospy.Publisher('/robot/head_display', Image, latch=True, queue_size=10)
 
+    self._font24=PIL.ImageFont.truetype('/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc', 24, encoding='unic')
+    self._font32=PIL.ImageFont.truetype('/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc', 32, encoding='unic')
+    self._font48=PIL.ImageFont.truetype('/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc', 48, encoding='unic')
+    self._font=self._font32
+
     self._image=self.mkImage()
+    self._draw=None
     self._sdk_img='sawyer_sdk_research.png'
 
   def mkImage(self, val=128):
     img=np.full((600,1024,3), val, dtype=np.uint8)
+    return img
+
+  def mkPILImage(self, val=128):
+    img=PIL.Image.new('RGB',(1024,600), color=(val,val,val))
+    self._draw=PIL.ImageDraw.Draw(img)
     return img
 
   def clear(self):
@@ -833,8 +848,33 @@ class SawyerDisplay(object):
   def update(self):
     self.showImage()
 
+  def convert2cv(self):
+    if isinstance(self._image, PIL.Image.Image) :
+      self._image=np.asarray(self._image)
+      self._draw=None
+
+  def convert2PIL(self):
+    if self._draw is None:
+      self._image=PIL.Image.fromarray(self._image)
+      self._draw=PIL.ImageDraw.Draw(self._image)
+
+  def drawText(self, txt, x, l, clear=False):
+    if clear: self._image=self.mkPILImage()
+    self.convert2PIL()
+    pos=(20+x, l*50)
+    self._draw.text(pos, txt, font=self._font, fill='#ffffff')
+    self.update()
+
+  def drawEllipse(self, param, fill=(255,0,0), outline=(0,0,0), clear=False):
+    if clear: self._image=self.mkPILImage()
+    self.convert2PIL()
+    self._draw.ellipse(param, fill=fill, outline=outline)
+    self.update()
+
   def putText(self, txt, x, l, clear=False):
     if clear: self._image=self.mkImage()
+    self.convert2cv()
+
     pos=(20+x, l*50)
     cv2.putText(self._image, txt, pos, cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255,255,255), 2, cv2.LINE_AA)
     self.update()
@@ -847,6 +887,9 @@ class SawyerDisplay(object):
       img=self._image
     elif type(img) is str:
       img=cv2.imread('images/'+img)
+
+    if isinstance(img, PIL.Image.Image):
+      img=np.asarray(img)
 
     if not rospy.is_shutdown():
       cv_img=cv_bridge.CvBridge().cv2_to_imgmsg(img, encoding="bgr8")

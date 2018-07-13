@@ -606,7 +606,7 @@ class MySawyer(object):
   def gripper_open(self):
     if self._gripper and self._gripper.is_ready():
       if self._is_clicksmart:
-        self._gripper.set_ee_signal_value('grip', False)
+        self._gripper.set_ee_signal_value('vacuumOn', True)
       else:
         self._gripper.open()
   #
@@ -614,14 +614,14 @@ class MySawyer(object):
   def gripper_close(self):
     if self._gripper and self._gripper.is_ready():
       if self._is_clicksmart:
-        self._gripper.set_ee_signal_value('grip', True)
+        self._gripper.set_ee_signal_value('vacuumOn', False)
       else:
         self._gripper.close()
 
   def is_gripping(self):
     if self._gripper and self._gripper.is_ready():
       if self._is_clicksmart:
-        return self._gripper.get_ee_signal_value('grip')
+        return not self._gripper.get_ee_signal_value('vacuumOn')
       else:
         return self._gripper.is_gripping()
     return None
@@ -843,8 +843,10 @@ class SawyerDisplay(object):
 
     self._font24=PIL.ImageFont.truetype('/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc', 24, encoding='unic')
     self._font32=PIL.ImageFont.truetype('/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc', 32, encoding='unic')
+    self._font42=PIL.ImageFont.truetype('/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc', 42, encoding='unic')
     self._font48=PIL.ImageFont.truetype('/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc', 48, encoding='unic')
-    self._font=self._font32
+    self._font64=PIL.ImageFont.truetype('/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc', 64, encoding='unic')
+    self._font=self._font42
 
     self._image=self.mkImage()
     self._draw=None

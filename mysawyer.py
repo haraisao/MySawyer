@@ -327,6 +327,16 @@ class MySawyer(object):
       if self._navigator.deregister_callback(self.back_id) : self.back_id=None
       if self._navigator.deregister_callback(self.square_id) : self.square_id=None
   
+  def getFeedbackPosJoint(self):
+    res=self._limb.joint_ordered_angles()
+    res.append(self.gripper_state())
+    return res
+
+  def gripper_state(self):
+    if self.is_gripping :
+      return 1
+    else:
+      return 0
   #######################################################
   #
   # For Joint Position mode (before SDK-5.2)
@@ -607,6 +617,14 @@ class MySawyer(object):
         self._gripper.set_ee_signal_value('grip', True)
       else:
         self._gripper.close()
+
+  def is_gripping(self):
+    if self._gripper and self._gripper.is_ready():
+      if self._is_clicksmart:
+        return self._gripper.get_ee_signal_value('grip')
+      else:
+        return self._gripper.is_gripping()
+    return None
   ###############################################################
   #
   #   stop the thread of velocity control loop 

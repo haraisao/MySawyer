@@ -14,6 +14,7 @@ import omniORB
 from omniORB import CORBA, PortableServer
 import JARA_ARM, JARA_ARM__POA
 
+from mysawyer import *
 
 
 class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterface_Common):
@@ -27,25 +28,29 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         @brief standard constructor
         Initialise member variables here
         """
-        pass
+        self._sawyer=MySawyer()
+
 
     # RETURN_ID clearAlarms()
     def clearAlarms(self):
-        raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+        #raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
         # *** Implement me
         # Must return: result
+        return JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.RETURN_ID(0,'')
 
     # RETURN_ID getActiveAlarm(out AlarmSeq alarms)
     def getActiveAlarm(self):
         raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
         # *** Implement me
         # Must return: result, alarms
+        return JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.RETURN_ID(0,''), []
 
     # RETURN_ID getFeedbackPosJoint(out JointPos pos)
     def getFeedbackPosJoint(self):
         raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
         # *** Implement me
         # Must return: result, pos
+        return JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.RETURN_ID(0,''),self._sawyer.getFeedbackPosJoint()
 
     # RETURN_ID getManipInfo(out ManipInfo mInfo)
     def getManipInfo(self):

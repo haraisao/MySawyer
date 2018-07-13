@@ -1,0 +1,2 @@
+#!/bin/sh
+omniidl -bpython -I"%RTM_ROOT%rtm\idl" -I"G:\RTC\CraneX7ControllerRTC-master\idl" idl/ManipulatorCommonInterface_Middle.idl idl/ManipulatorCommonInterface_Common.idl idl/ManipulatorCommonInterface_DataTypes.idl idl/BasicDataType.idl 

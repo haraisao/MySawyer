@@ -1,0 +1,54 @@
+# StdManipulator CMake config file
+#
+# This file sets the following variables:
+# StdManipulator_FOUND - Always TRUE.
+# StdManipulator_INCLUDE_DIRS - Directories containing the StdManipulator include files.
+# StdManipulator_IDL_DIRS - Directories containing the StdManipulator IDL files.
+# StdManipulator_LIBRARIES - Libraries needed to use StdManipulator.
+# StdManipulator_DEFINITIONS - Compiler flags for StdManipulator.
+# StdManipulator_VERSION - The version of StdManipulator found.
+# StdManipulator_VERSION_MAJOR - The major version of StdManipulator found.
+# StdManipulator_VERSION_MINOR - The minor version of StdManipulator found.
+# StdManipulator_VERSION_REVISION - The revision version of StdManipulator found.
+# StdManipulator_VERSION_CANDIDATE - The candidate version of StdManipulator found.
+
+message(STATUS "Found StdManipulator-@PROJECT_VERSION@")
+set(StdManipulator_FOUND TRUE)
+
+find_package(<dependency> REQUIRED)
+
+#set(StdManipulator_INCLUDE_DIRS
+#    "@CMAKE_INSTALL_PREFIX@/include/@PROJECT_NAME_LOWER@-@PROJECT_VERSION_MAJOR@"
+#    ${<dependency>_INCLUDE_DIRS}
+#    )
+#
+#set(StdManipulator_IDL_DIRS
+#    "@CMAKE_INSTALL_PREFIX@/include/@PROJECT_NAME_LOWER@-@PROJECT_VERSION_MAJOR@/idl")
+set(StdManipulator_INCLUDE_DIRS
+    "@CMAKE_INSTALL_PREFIX@/include/@CPACK_PACKAGE_FILE_NAME@"
+    ${<dependency>_INCLUDE_DIRS}
+    )
+set(StdManipulator_IDL_DIRS
+    "@CMAKE_INSTALL_PREFIX@/include/@CPACK_PACKAGE_FILE_NAME@/idl")
+
+
+if(WIN32)
+    set(StdManipulator_LIBRARIES
+        "@CMAKE_INSTALL_PREFIX@/@LIB_INSTALL_DIR@/@CMAKE_SHARED_LIBRARY_PREFIX@@PROJECT_NAME_LOWER@@CMAKE_STATIC_LIBRARY_SUFFIX@"
+        ${<dependency>_LIBRARIES}
+        )
+else(WIN32)
+    set(StdManipulator_LIBRARIES
+        "@CMAKE_INSTALL_PREFIX@/@LIB_INSTALL_DIR@/@CMAKE_SHARED_LIBRARY_PREFIX@@PROJECT_NAME_LOWER@@CMAKE_SHARED_LIBRARY_SUFFIX@"
+        ${<dependency>_LIBRARIES}
+        )
+endif(WIN32)
+
+set(StdManipulator_DEFINITIONS ${<dependency>_DEFINITIONS})
+
+set(StdManipulator_VERSION @PROJECT_VERSION@)
+set(StdManipulator_VERSION_MAJOR @PROJECT_VERSION_MAJOR@)
+set(StdManipulator_VERSION_MINOR @PROJECT_VERSION_MINOR@)
+set(StdManipulator_VERSION_REVISION @PROJECT_VERSION_REVISION@)
+set(StdManipulator_VERSION_CANDIDATE @PROJECT_VERSION_CANDIDATE@)
+

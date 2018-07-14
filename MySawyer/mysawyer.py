@@ -35,8 +35,8 @@ class MySawyer(object):
   #
   #  Init class
   def __init__(self, name='MySawyer', limb='right', anonymous=True, disable_signals=True, light=True):
-    #rospy.init_node(name, anonymous=anonymous, disable_signals=disable_signals)
-    #rospy.sleep(1)
+    rospy.init_node(name, anonymous=anonymous, disable_signals=disable_signals)
+    rospy.sleep(1)
     #
     #
     self._limb=None

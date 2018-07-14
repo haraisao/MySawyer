@@ -35,44 +35,29 @@ class MySawyer(object):
   #
   #  Init class
   def __init__(self, name='MySawyer', limb='right', anonymous=True, disable_signals=True, light=True):
-    rospy.init_node(name, anonymous=anonymous, disable_signals=disable_signals)
-    rospy.sleep(1)
+    #rospy.init_node(name, anonymous=anonymous, disable_signals=disable_signals)
+    #rospy.sleep(1)
     #
     #
-    try:
-      self._limb=intera_interface.Limb(limb)
-      self._head=intera_interface.Head()
+    self._limb=None
+    self._head=None
+    self._light=None
+    self._head_display=None
+    self._display=None
+    self._cuff=None
+    self._limits=None
+    self._navigator=None
 
-      self._light=SawyerLight(light)
-    
-      self._head_display=intera_interface.HeadDisplay()
-      self._display=SawyerDisplay()
-      self._cuff=intera_interface.Cuff()
+    self._init_nodes()
+    self._get_gripper()
 
-      self._limits=intera_interface.JointLimits()
-    except:
-      pass
-
-    try:
-      self._gripper=intera_interface.get_current_gripper_interface()
-      self._is_clicksmart = isinstance(self._gripper, intera_interface.SimpleClickSmartGripper)
-      if self._is_clicksmart:
-        if self._gripper.needs_init():
-          self._gripper.initialize()
-      else:
-        if not (self._gripper.is_calibrated() or
-                self._gripper.calibrate() == True):
-          raise
-    except:
-      self._gripper=None
-      self._is_clicksmart=False
-      
     #
     # Default Variables
     self._init_pos=[0.0, -1.178, 0.0, 2.178, 0.0, 0.567, 3.313]
     self._default_pos=[0.0, -0.9, 0.0, 1.8, 0.0, -0.9, 0.0]
-    self._joint_names=self._limb.joint_names()
     self._motion_trajectory=None
+
+    #self._joint_names=self._limb.joint_names()
     #self._velocity_limits=self._limits.joint_velocity_limits()
 
     #
@@ -123,12 +108,48 @@ class MySawyer(object):
     self._rotational_accel=1.57  # rad/s/s
 
     ## for event handlers
-    self._navigator=intera_interface.Navigator()
     self.ok_id=None
     self.show_id=None
     self.back_id=None
 
+  def _init_nodes(self):
+    try:
+      self._limb=intera_interface.Limb(limb)
 
+      self._head=intera_interface.Head()
+
+      self._light=SawyerLight(light)
+    
+      #self._head_display=intera_interface.HeadDisplay()
+      self._display=SawyerDisplay()
+      self._cuff=intera_interface.Cuff()
+
+      self._limits=intera_interface.JointLimits()
+      self._navigator=intera_interface.Navigator()
+
+      self._joint_names=self._limb.joint_names()
+      self._velocity_limits=self._limits.joint_velocity_limits()
+    except:
+      pass
+
+  def _get_gripper(self):
+    try:
+      self._gripper=intera_interface.get_current_gripper_interface()
+      self._is_clicksmart = isinstance(self._gripper, intera_interface.SimpleClickSmartGripper)
+      if self._is_clicksmart:
+        if self._gripper.needs_init():
+          self._gripper.initialize()
+      else:
+        if not (self._gripper.is_calibrated() or
+                self._gripper.calibrate() == True):
+          raise
+    except:
+      self._gripper=None
+      self._is_clicksmart=False
+      
+  #
+  #
+  def activate(self):
     #
     #  Enable Robot
     self._rs=intera_interface.RobotEnable(intera_interface.CHECK_VERSION)
@@ -146,9 +167,9 @@ class MySawyer(object):
 
     #
     # LED white ON
-    #self._light.head_on()
-    #self.mkRosPorts()
-    #self.set_record()
+    self._light.head_on()
+    self.mkRosPorts()
+    self.set_record()
 
   #
   #

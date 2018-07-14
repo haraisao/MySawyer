@@ -9,7 +9,7 @@
 
 
 """
-from __future__ import print_function
+#from __future__ import print_function
 import omniORB
 from omniORB import CORBA, PortableServer
 import JARA_ARM, JARA_ARM__POA
@@ -35,7 +35,8 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         @brief standard constructor
         Initialise member variables here
         """
-        self._robot=MySawyer()
+        #self._robot=MySawyer()
+        self._robot=None
 
     # RETURN_ID clearAlarms()
     def clearAlarms(self):
@@ -180,6 +181,7 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@
 
 
 """
-from __future__ import print_function
+#from __future__ import print_function
 import omniORB
 from omniORB import CORBA, PortableServer
 import JARA_ARM, JARA_ARM__POA
@@ -35,7 +35,8 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         @brief standard constructor
         Initialise member variables here
         """
-        self._robot=MySawyer()
+        #self._robot=MySawyer()
+        self._robot=None
 
     # RETURN_ID closeGripper()
     def closeGripper(self):

@@ -73,7 +73,7 @@ class MySawyer(object):
     self._default_pos=[0.0, -0.9, 0.0, 1.8, 0.0, -0.9, 0.0]
     self._joint_names=self._limb.joint_names()
     self._motion_trajectory=None
-    self._velocity_limits=self._limits.joint_velocity_limits()
+    #self._velocity_limits=self._limits.joint_velocity_limits()
 
     #
     #  for motion controller 
@@ -146,9 +146,9 @@ class MySawyer(object):
 
     #
     # LED white ON
-    self._light.head_on()
-    self.mkRosPorts()
-    self.set_record()
+    #self._light.head_on()
+    #self.mkRosPorts()
+    #self.set_record()
 
   #
   #

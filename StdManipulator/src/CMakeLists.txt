@@ -41,18 +41,20 @@ add_library(${PROJECT_NAME} ${LIB_TYPE} ${comp_srcs}
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
 set_source_files_properties(${ALL_IDL_SRCS} PROPERTIES GENERATED 1)
 if(NOT TARGET ALL_IDL_TGT)
- add_custom_target(ALL_IDL_TGT)
+  add_custom_target(ALL_IDL_TGT)
 endif(NOT TARGET ALL_IDL_TGT)
 add_dependencies(${PROJECT_NAME} ALL_IDL_TGT)
 target_link_libraries(${PROJECT_NAME} ${OPENRTM_LIBRARIES})
 
 add_executable(${PROJECT_NAME}Comp ${standalone_srcs}
   ${comp_srcs} ${comp_headers} ${ALL_IDL_SRCS})
-add_dependencies(${PROJECT_NAME}Comp ALL_IDL_TGT)
 target_link_libraries(${PROJECT_NAME}Comp ${OPENRTM_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}Comp
     EXPORT ${PROJECT_NAME}
-    RUNTIME DESTINATION ${INSTALL_PREFIX} COMPONENT component
-    LIBRARY DESTINATION ${INSTALL_PREFIX} COMPONENT component
-    ARCHIVE DESTINATION ${INSTALL_PREFIX} COMPONENT component)
+    RUNTIME DESTINATION ${BIN_INSTALL_DIR} COMPONENT component
+    LIBRARY DESTINATION ${LIB_INSTALL_DIR} COMPONENT component
+    ARCHIVE DESTINATION ${LIB_INSTALL_DIR} COMPONENT component)
+install(EXPORT ${PROJECT_NAME}
+    DESTINATION ${LIB_INSTALL_DIR}/${PROJECT_NAME}
+    FILE ${PROJECT_NAME}Depends.cmake)

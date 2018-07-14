@@ -1,147 +1,72 @@
-cmake_minimum_required(VERSION 2.8)
-if(POLICY CMP0040)
-  cmake_policy(SET CMP0040 OLD)
-endif()
-if(POLICY CMP0053)
-  cmake_policy(SET CMP0053 OLD)
-endif()
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-project(StdManipulator)
-string(TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
-include("${PROJECT_SOURCE_DIR}/cmake/utils.cmake")
-set(PROJECT_VERSION 1.0.0 CACHE STRING "StdManipulator version")
-set(UPGRADE_GUID "")
-DISSECT_VERSION()
-set(PROJECT_SHORT_VER ${PROJECT_VERSION_MAJOR}${PROJECT_VERSION_MINOR}${PROJECT_VERSION_REVISION})
-set(PROJECT_DESCRIPTION "Manipulator controller with JARA Standard Interfaces")
-set(PROJECT_VENDOR "AIST")
-set(PROJECT_MAINTAINER "unknown")
-set(PROJECT_TYPE "python/Manipulator")
+project(StdManipulator NONE)
 
-find_package(OpenRTM)
-set(RTM_VER ${OPENRTM_VERSION})
-set(RTM_SHORT_VER ${OPENRTM_VERSION_MAJOR}${OPENRTM_VERSION_MINOR}${OPENRTM_VERSION_PATCH})
+set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules")
 
-function(get_dist ARG0)
-  if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(${ARG0} ${CMAKE_SYSTEM_NAME} PARENT_SCOPE)
-    return()
-  endif()
-  foreach(dist Debian Ubuntu RedHat Fedora CentOS Raspbian)
-    execute_process(
-      COMMAND grep ${dist} -s /etc/issue /etc/os-release /etc/redhat-release /etc/system-release
-      OUTPUT_VARIABLE dist_name
-      )
-    if(${dist_name} MATCHES ${dist})
-      set(${ARG0} ${dist} PARENT_SCOPE)
-      return()
-    endif()
-  endforeach()
-endfunction(get_dist)
+set(LINUX_PACKAGE_GENERATOR "DEB")
+#set(LINUX_PACKAGE_GENERATOR "RPM")
 
-function(get_pkgmgr ARG0)
-  get_dist(DIST_NAME)
-  if(${DIST_NAME} MATCHES "Debian" OR
-     ${DIST_NAME} MATCHES "Ubuntu" OR
-     ${DIST_NAME} MATCHES "Raspbian")
-     set(${ARG0} "DEB" PARENT_SCOPE)
-     return()
-  endif()
-  if(${DIST_NAME} MATCHES "RedHat" OR
-     ${DIST_NAME} MATCHES "Fedora" OR
-     ${DIST_NAME} MATCHES "CentOS")
-     set(${ARG0} "RPM" PARENT_SCOPE)
-     return()
-  endif()
-endfunction(get_pkgmgr)
 
-get_dist(DIST_NAME)
-MESSAGE(STATUS "Distribution is ${DIST_NAME}")
+# component settings
+set(RTC_NAME "${PROJECT_NAME}")
+set(RTC_VERSION "1.0.0")
+set(RTC_VERSION_MAJOR "1")
+set(RTC_VERSION_MINOR "0")
+set(RTC_VERSION_PATCH "0")
+set(RTC_LANG "python")
+set(RTC_DESCRIPTION "Manipulator controller with JARA Standard Interfaces")
+set(RTC_VENDOR "AIST")
+set(RTC_MAINTAINER "author@example.com")
 
-get_pkgmgr(PKGMGR)
-if(PKGMGR AND NOT LINUX_PACKAGE_GENERATOR)
- set(LINUX_PACKAGE_GENERATOR ${PKGMGR})
- if(${PKGMGR} MATCHES "DEB")
-   execute_process(COMMAND dpkg --print-architecture
-     OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE
-     OUTPUT_STRIP_TRAILING_WHITESPACE)
-   message(STATUS "Package manager is ${PKGMGR}. Arch is ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}.")
- endif()
- if(${PKGMGR} MATCHES "RPM")
-   execute_process(COMMAND uname "-m"
-     OUTPUT_VARIABLE CPACK_RPM_PACKAGE_ARCHITECTURE
-     OUTPUT_STRIP_TRAILING_WHITESPACE)
-   message(STATUS "Package manager is ${PKGMGR}. Arch is ${CPACK_RPM_PACKAGE_ARCHITECTURE}.")
- endif()
-endif()
-
-option(BUILD_DOCUMENTATION "Build the documentation" OFF)
+string(TOLOWER ${RTC_NAME} PACKAGE_NAME)
+set(PACKAGE_VERSION "${RTC_VERSION_MAJOR}.${RTC_VERSION_MINOR}.${RTC_VERSION_PATCH}")
 
 set(IDL_FILES ""
               ManipulatorCommonInterface_Middle.idl
               ManipulatorCommonInterface_Common.idl
 )
 
-if(WIN32)
-    set(SCRIPT_FILE ""
-                    idlcompile.bat delete.bat)
-else()
-    set(SCRIPT_FILE ""
-                    idlcompile.sh)
-endif()
-
 set(EXEC_FILES ""
                StdManipulator.py
-               ${SCRIPT_FILE})
+               ManipulatorCommonInterface_Middle_idl_example.py
+               ManipulatorCommonInterface_Common_idl_example.py
+)
 
 set(OTHER_SRCS CMakeLists.txt
                RTC.xml StdManipulator.conf rtc.conf)
 
+
+# check OpenRTM installed
+find_package(OpenRTMPython REQUIRED)
+
+# check doxygen installed
+find_package(Doxygen)
+if(DOXYGEN_FOUND STREQUAL "NO")
+    message(FATAL_ERROR "Doxygen not found.")
+endif()
+
 # check python installed
 find_package(PythonInterp)
+find_package(PythonLibs)
+
 
 if(WIN32)
-   set(OPENRTM_SHARE_PREFIX "OpenRTM-aist/${RTM_VER}/Components/${PROJECT_TYPE}")
-   set(INSTALL_PREFIX ${PROJECT_NAME})
-   if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-      set(CMAKE_INSTALL_PREFIX "${OPENRTM_DIR}Components/${PROJECT_TYPE}/${PROJECT_NAME}" CACHE PATH "..." FORCE)
-   endif()
+    # add command path
+    set($ENV{PATH} $ENV{PATH} "${OPENRTM_DIR}/bin")
+    # set install path prefix
+    set(CMAKE_INSTALL_PREFIX "${OPENRTM_DIR}")
+    set(INSTALL_PREFIX "components/${RTC_LANG}/${PACKAGE_NAME}${PACKAGE_VERSION}")
 else()
-   set(OPENRTM_SHARE_PREFIX "share/openrtm-${OPENRTM_VERSION_MAJOR}.${OPENRTM_VERSION_MINOR}")
-   set(INSTALL_PREFIX "${OPENRTM_SHARE_PREFIX}/components/${PROJECT_TYPE}/${PROJECT_NAME}")
+    # add command path
+    set($ENV{PATH} $ENV{PATH} "${OPENRTM_DIR}/bin")
+    # set install path prefix
+    set(CMAKE_INSTALL_PREFIX "${OPENRTM_DIR}")
+    set(OPENRTM_SHARE_PREFIX "share/openrtm-${OPENRTM_VERSION_MAJOR}.${OPENRTM_VERSION_MINOR}")
+    set(INSTALL_PREFIX "${OPENRTM_SHARE_PREFIX}/components/${RTC_LANG}/${PACKAGE_NAME}${PACKAGE_VERSION}")
 endif()
 
-# postinst, prerm settings
-if(UNIX)
-		configure_file(${CMAKE_CURRENT_SOURCE_DIR}/postinst.in
-			${CMAKE_CURRENT_SOURCE_DIR}/postinst @ONLY
-		)
-		configure_file(${CMAKE_CURRENT_SOURCE_DIR}/prerm.in
-			  ${CMAKE_CURRENT_SOURCE_DIR}/prerm @ONLY
-		)
-endif()
-
-add_custom_target( ${PROJECT_NAME} ALL
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/idl
-  COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${PROJECT_SOURCE_DIR}/idl ${PROJECT_BINARY_DIR}/idl
-)
-
-foreach(target ${EXEC_FILES})
-  add_custom_command( TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/${target} ${PROJECT_BINARY_DIR}
-  )
-endforeach()          
-
-install(PROGRAMS ${EXEC_FILES} DESTINATION "${INSTALL_PREFIX}"
-        COMPONENT component)
-
-install(FILES ${PROJECT_SOURCE_DIR}/RTC.xml DESTINATION ${INSTALL_PREFIX}
-        COMPONENT component)
-
-install(DIRECTORY idl DESTINATION "${INSTALL_PREFIX}"
-        COMPONENT component)
 
 # add uninstall target
 configure_file(
@@ -151,36 +76,134 @@ configure_file(
 add_custom_target(uninstall COMMAND 
     ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
-if(WIN32)
-    # start menu
-    set_property(INSTALL "${INSTALL_PREFIX}/${PROJECT_NAME}.py"
-        PROPERTY CPACK_START_MENU_SHORTCUTS "${PROJECT_NAME}.py")
-endif()
+
+# add build target
+add_custom_target(build ALL)
+
+add_custom_command(TARGET build PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory bin)
+
+foreach(idl ${IDL_FILES})
+    add_custom_command(TARGET build PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "IDL Compiling \"${idl}\""
+        COMMAND ${OPENRTM_IDLC} ${OPENRTM_IDLFLAGS} -Cbin "${PROJECT_SOURCE_DIR}/${idl}")
+endforeach()
+
+install(PROGRAMS ${EXEC_FILES} DESTINATION "${INSTALL_PREFIX}"
+        COMPONENT "applications")
+
+install(FILES RTC.xml DESTINATION "${INSTALL_PREFIX}"
+        COMPONENT "applications")
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/ DESTINATION "${INSTALL_PREFIX}"
+        COMPONENT "applications"
+        PATTERN "bin/*")
+
 
 # target settings for document
-if(BUILD_DOCUMENTATION)
-    add_subdirectory(doc)
-endif(BUILD_DOCUMENTATION)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/doc/doxyfile.in"
+               "${CMAKE_CURRENT_BINARY_DIR}/doc/doxyfile")
 
-if(UNIX)
+add_custom_target(doxygen COMMAND
+                  ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/doxyfile)
+
+set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES doc)
+
+get_target_property(DOC_TARGET doc TYPE)
+if(NOT DOC_TARGET)
+    add_custom_target(doc)
+endif()
+add_dependencies(doc doxygen)
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc DESTINATION "${INSTALL_PREFIX}"
+        COMPONENT "documents")
+
+
+# install source files
+install(FILES ${IDL_FILES} ${EXEC_FILES} ${OTHER_SRCS}
+        DESTINATION "${INSTALL_PREFIX}/src"
+        COMPONENT "sources")
+
+install(DIRECTORY cmake_modules cpack_resources
+        DESTINATION "${INSTALL_PREFIX}/src"
+        COMPONENT "sources")
+
+
+# package settings
+set(CPACK_PACKAGE_NAME "${RTC_NAME}")
+set(CPACK_PACKAGE_VERSION_MAJOR "${RTC_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${RTC_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${RTC_VERSION_PATCH}")
+set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+set(CPACK_PACKAGE_VENDOR "${RTC_VENDOR}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${RTC_DESCRIPTION}")
+set(CPACK_PACKAGE_CONTACT "${RTC_MAINTAINER}")
+
+set(CPACK_RESOURCE_FILE_LICENSE
+    "${CMAKE_CURRENT_SOURCE_DIR}/cpack_resources/License.txt")
+set(CPACK_PACKAGE_DESCRIPTION_FILE
+    "${CMAKE_CURRENT_SOURCE_DIR}/cpack_resources/Description.txt")
+
+set(CPACK_COMPONENTS_ALL applications documents sources)
+set(CPACK_COMPONENT_APPLICATIONS_DISPLAY_NAME "Applications")
+set(CPACK_COMPONENT_APPLICATIONS_DESCRIPTION "RT-Component applications")
+set(CPACK_COMPONENT_APPLICATIONS_DISABLED FALSE)
+
+set(CPACK_COMPONENT_DOCUMENTS_DISPLAY_NAME "Documents")
+set(CPACK_COMPONENT_DOCUMENTS_DESCRIPTION "RT-Component documents")
+set(CPACK_COMPONENT_DOCUMENTS_DISABLED TRUE)
+
+set(CPACK_COMPONENT_SOURCES_DISPLAY_NAME "Source files")
+set(CPACK_COMPONENT_SOURCES_DESCRIPTION "RT-Component source files")
+set(CPACK_COMPONENT_SOURCES_DISABLED TRUE)
+
+if(WIN32)
+    set(CPACK_GENERATOR "WIX")
+
+    # Windows WiX package settings
+
+    set(CPACK_WIX_XSL "@CMAKE_CURRENT_BINARY_DIR@/wix.xsl")
+    set(CPACK_WIX_LANG "ja-jp")
+    set(CPACK_RESOURCE_FILE_LICENSE
+        "@CMAKE_CURRENT_SOURCE_DIR@/cpack_resources/License.rtf")
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cpack_resources/wix.xsl.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/wix.xsl" @ONLY)
+
+    set(CPACK_PACKAGE_FILE_NAME
+        "rtc${OPENRTM_VERSION}-${PACKAGE_NAME}${PACKAGE_VERSION}")
+
+else()
     set(CPACK_GENERATOR "${LINUX_PACKAGE_GENERATOR}")
-    if(CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
-				set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/postinst;${CMAKE_SOURCE_DIR}/prerm")
-    endif(CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
-    if(CPACK_RPM_PACKAGE_ARCHITECTURE)
-        set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/postinst")
-        set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/prerm")
-    endif(CPACK_RPM_PACKAGE_ARCHITECTURE)
+
+    if(CPACK_GENERATOR STREQUAL "DEB")
+        # Linux Debian package settings
+
+        set(CPACK_DEBIAN_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION}-1")
+        set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "i386")
+        set(CPACK_DEBIAN_PACKAGE_SECTION "main")
+        set(CPACK_DEBIAN_PACKAGE_PRIORITY  "extra")
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "openrtm-aist (>= 1.0.0)")
+
+        set(CPACK_PACKAGE_FILE_NAME
+            "rtc${OPENRTM_VERSION}-${PACKAGE_NAME}_${CPACK_DEBIAN_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+
+    elseif(CPACK_GENERATOR STREQUAL "RPM")
+        # Linux RPM package settings
+
+        set(CPACK_RPM_PACKAGE_RELEASE "1.fc10")
+        set(CPACK_RPM_PACKAGE_ARCHITECTURE "i386")
+        set(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
+        set(CPACK_RPM_PACKAGE_LICENSE "LGPL")
+        set(CPACK_RPM_PACKAGE_REQUIRES "OpenRTM-aist >= 1.0.0")
+
+        set(CPACK_PACKAGE_FILE_NAME
+            "rtc${OPENRTM_VERSION}-${PACKAGE_NAME}-${PACKAGE_VERSION}-${CPACK_RPM_PACKAGE_RELEASE}.${CPACK_RPM_PACKAGE_ARCHITECTURE}")
+
+    endif()
 endif()
 
-set(WIX_PATCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/wix_patch.xml")
-configure_file("cmake/wix_patch.xml.in"
-           ${WIX_PATCH_FILE} @ONLY)
+message(STATUS "Package type: ${CPACK_GENERATOR}")
+message(STATUS "Package name: ${CPACK_PACKAGE_FILE_NAME}")
 
-set(cpack_options "${PROJECT_BINARY_DIR}/cpack_options.cmake")
-configure_file("${PROJECT_SOURCE_DIR}/cmake/cpack_options.cmake.in"
-    ${cpack_options} @ONLY)
-
-set(CPACK_PROJECT_CONFIG_FILE ${cpack_options})
-include(${CPACK_PROJECT_CONFIG_FILE})
 include(CPack)

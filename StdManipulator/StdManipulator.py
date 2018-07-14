@@ -30,6 +30,7 @@ from ManipulatorCommonInterface_Common_idl_impl import *
 # Import Service stub modules
 # <rtc-template block="consumer_import">
 # </rtc-template>
+from MySawyer import *
 
 
 # This module's spesification
@@ -115,6 +116,7 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 	#
 	def onInitialize(self):
 		# Bind variables and configuration variable
+                self._robot=MySawyer()
 		
 		# Set InPort buffers
 		self.addInPort("joints",self._jointsIn)
@@ -188,6 +190,8 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 	#
 	#
 	def onActivated(self, ec_id):
+                self._robot.enable()
+                self._robot._running=True
 	
 		return RTC.RTC_OK
 	
@@ -202,6 +206,8 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 	#
 	#
 	def onDeactivated(self, ec_id):
+                self._robot.disable()
+                self._robot._running=False
 	
 		return RTC.RTC_OK
 	
@@ -216,6 +222,7 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 	#
 	#
 	def onExecute(self, ec_id):
+                self._robot._vctrl_one_cycle(self._robot.report)
 	
 		return RTC.RTC_OK
 	

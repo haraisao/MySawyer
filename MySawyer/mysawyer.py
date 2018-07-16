@@ -627,25 +627,34 @@ class MySawyer(object):
   def gripper_open(self):
     if self._gripper and self._gripper.is_ready():
       if self._is_clicksmart:
-        self._gripper.set_ee_signal_value('grip', False)
+        if 'grip' in self.get_ee_signals() :
+          self._gripper.set_ee_signal_value('grip', False)
+        else:
+          return None
       else:
         self._gripper.open()
+    return True
   #
   #  Close the gripper
   def gripper_close(self):
     if self._gripper and self._gripper.is_ready():
       if self._is_clicksmart:
-        self._gripper.set_ee_signal_value('grip', True)
+        if 'grip' in self.get_ee_signals() :
+          self._gripper.set_ee_signal_value('grip', True)
+        else:
+          return None
       else:
         self._gripper.close()
+    return True
 
   #  Grippper vacuume: True:off, False:on
   def gripper_vacuume(self, stat=True):
     if self._gripper and self._gripper.is_ready():
       if self._is_clicksmart:
-        self._gripper.set_ee_signal_value('vacuumOn', stat)
-      else:
-        self._gripper.open()
+        if 'vacummOn' in self.get_ee_signals() :
+          self._gripper.set_ee_signal_value('vacuumOn', stat)
+          return self._gripper.get_ee_signal_value('vacuumOn')
+    return None
 
   def is_gripping(self):
     if self._gripper and self._gripper.is_ready():

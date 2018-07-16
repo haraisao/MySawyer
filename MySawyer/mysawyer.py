@@ -53,6 +53,7 @@ class MySawyer(object):
 
     #
     # Default Variables
+    self._home_pos=[0.0, -1.178, 0.0, 2.178, 0.0, 0.567, 3.313]
     self._init_pos=[0.0, -1.178, 0.0, 2.178, 0.0, 0.567, 3.313]
     self._default_pos=[0.0, -0.9, 0.0, 1.8, 0.0, -0.9, 0.0]
     self._motion_trajectory=None
@@ -63,7 +64,7 @@ class MySawyer(object):
     #
     #  for motion controller 
     self._motions={}
-    self._joint_positions={'init':self._init_pos, 'default':self._default_pos}
+    self._joint_positions={'home':self._home_pos,'init':self._init_pos, 'default':self._default_pos}
     self._index=0
     self._p_index=0
     self._is_recording=False
@@ -111,6 +112,14 @@ class MySawyer(object):
     self.ok_id=None
     self.show_id=None
     self.back_id=None
+
+    #
+    # for RTC
+    self._is_pause=False
+    self._stop_cmd={}
+    for i,name in enumerate(self._joint_names):
+      self._stop_cmd[name]=0.0
+
 
   def _init_nodes(self):
     try:
@@ -707,6 +716,7 @@ class MySawyer(object):
       rate.sleep()
     self._limb.exit_control_mode()
     print("Terminated")
+
   #
   # callback function for Subscriber
   def set_target_joint_pos(self, data):
@@ -814,10 +824,25 @@ class MySawyer(object):
     return self._limb.ik_request(_pose)
 
   ########################################################################
+  #
+  #  onExecuted
+  #
+  def onExecuted(self):
+    cuff_state=self._cuff.cuff_button()
+    if self._is_pause :
+      self._limb.set_joint_velocities(self._stop_cmd)
+    elif cuff_state :
+      self.set_target()
+    elif self._limb.has_collided() :
+      self.set_target()
+    else:
+      self._vctrl_one_cycle(self.report)
+  #
   # for RTC(Common)
   #
   def clearAlarms(self):
-    return None
+    print('No alerm..')
+    return True
 
   def getActiveAlarm(self):
     res=[]
@@ -849,7 +874,8 @@ class MySawyer(object):
   # for RTC(Middle)
   #
   def closeGripper(self):
-    return None
+    self.gripper_close()
+    return True
 
   def getBaseOffset(self):
     return None
@@ -873,6 +899,7 @@ class MySawyer(object):
     return None
 
   def moveGripper(self, angleRatio):
+    print('Move gripper')
     return None
 
   def moveLinearCartesianAbs(self, carPoint):
@@ -894,16 +921,21 @@ class MySawyer(object):
     return None
 
   def openGripper(self):
-    return None
+    self.gripper_open()
+    return True
 
   def pause(self):
-    return None
+    self._is_pause=True
+    self._limb.set_joint_velocities(self._stop_cmd)
+    return True
 
   def resume(self):
-    return None
+    self._is_pause=False
+    return True
 
   def stop(self):
-    return None
+    self.set_target()
+    return True
 
   def setAccelTimeCartesian(self, aclTime):
     return None
@@ -936,7 +968,8 @@ class MySawyer(object):
     return None
 
   def setSpeedJoint(self, spdRatio):
-    return None
+    self.set_speed(spdRatio)
+    return True
 
   def moveCircularCartesianAbs(self, carPointR, carPointT):
     return None
@@ -945,13 +978,15 @@ class MySawyer(object):
     return None
 
   def setHome(self, jointPoint):
-    return None
+    self._home_pos=jointPoint
+    return True
 
   def getHome(self):
-    return None
+    return self._home_pos
 
   def goHome(self):
-    return None
+    self._target=self._home_pos
+    return True
 
 
 ########################################################################

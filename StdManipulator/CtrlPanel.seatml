@@ -1,0 +1,72 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <seatml>
+   <general name="CtrlGui">
+
+    <adaptor name="target" type="rtcout" datatype="TimedFloatSeq" />
+    <adaptor name="current_pos" type="rtcin" datatype="TimedFloatSeq" />
+
+    <adaptor name="manipCommon" type="consumer" interface="ManipulatorCommonInterface_Common|manipCommon0" if_class="ManipulatorCommonInterface_Common_idl.ManupulatorCommonInterface_Common"  />
+    <adaptor name="manipMiddle" type="consumer" interface="ManipulatorCommonInterface_Middle|manipMiddle0" if_class="ManipulatorCommonInterface_Middle_idl.ManupulatorCommonInterface_Middle"  />
+
+
+  </general>
+
+  <state name="main_mode">
+
+    <label text="SimpleIO" colspan="4" bg_color="blue" />
+
+    <brk />
+    <label text="Input:" />
+    <input id="textIn" width="50" colspan="2">
+        <message sendto="str_out" input="main_mode:textIn" />
+    </input>
+    <button label="Send">
+        <message sendto="str_out" input="main_mode:textIn" />
+    </button>
+    <brk />
+    <button label="Echo">
+      <script>
+        seat.callService("MyService_C", "echo", seat.getEntry("main_mode:textIn"))
+        seat.appendText("main_mode:textOut", "\n==Finish Echo==")
+      </script>
+    </button>
+    <button label="SetHome">
+      <script>
+         seat.callService("manipMiddle", "setHome", eval(seat.getEntry("main_mode:textIn")))
+      </script>
+
+    <button label="GetHome">
+      <script>
+        retval = seat.callService("manipMiddle", "getHome")
+        seat.appendText("main_mode:textOut", "\n==="+str(retval)+"===")
+      </script>
+    </button>
+
+    <button label="GoHome">
+      <script>
+        retval = seat.callService("manipMiddle", "goHome")
+        seat.appendText("main_mode:textOut", "\n==="+str(retval)+"===")
+      </script>
+    </button>
+
+    <brk />
+  
+    <label text="Coming Text:" />
+    <text id="textOut" width="50" height="5" colspan="3" >
+	    INIT String...
+    </text>
+    <brk />
+    <button label="Clear">
+      <script>
+        seat.clearText("main_mode:textOut")
+      </script>
+    </button>
+ 
+    <rule source="str_in">
+      <script>
+        seat.appendText("main_mode:textOut", rtc_in_data.data+"\n")
+      </script>
+    </rule>
+  </state>
+ </seatml>
+

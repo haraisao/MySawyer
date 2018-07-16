@@ -195,7 +195,7 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 		#
 		#
 	def onActivated(self, ec_id):
-                self._robot=MySawyer(anonymous=False)
+                self._robot=MySawyer(self.getInstanceName(), anonymous=False)
                 self._robot.activate()
                 self._robot._is_running=True
 		self._JARA_ARM_ManipulatorCommonInterface_Common._robot=self._robot
@@ -321,7 +321,6 @@ def MyModuleInit(manager):
     comp = manager.createComponent("StdManipulator")
 
 def main():
-    	rospy.init_node('MySawyer', anonymous=True, disable_signals=True)
 	mgr = OpenRTM_aist.Manager.init(sys.argv)
 	mgr.setModuleInitProc(MyModuleInit)
 	mgr.activateManager()

@@ -627,7 +627,7 @@ class MySawyer(object):
   def gripper_open(self):
     if self._gripper and self._gripper.is_ready():
       if self._is_clicksmart:
-        self._gripper.set_ee_signal_value('vacuumOn', True)
+        self._gripper.set_ee_signal_value('grip', False)
       else:
         self._gripper.open()
   #
@@ -635,17 +635,29 @@ class MySawyer(object):
   def gripper_close(self):
     if self._gripper and self._gripper.is_ready():
       if self._is_clicksmart:
-        self._gripper.set_ee_signal_value('vacuumOn', False)
+        self._gripper.set_ee_signal_value('grip', True)
       else:
         self._gripper.close()
+
+  #  Grippper vacuume: True:off, False:on
+  def gripper_vacuume(self, stat=True):
+    if self._gripper and self._gripper.is_ready():
+      if self._is_clicksmart:
+        self._gripper.set_ee_signal_value('vacuumOn', stat)
+      else:
+        self._gripper.open()
 
   def is_gripping(self):
     if self._gripper and self._gripper.is_ready():
       if self._is_clicksmart:
-        return not self._gripper.get_ee_signal_value('vacuumOn')
+        if self._gripper.get_ee_signal_value('grip') is None:
+          return not self._gripper.get_ee_signal_value('vacumme')
+        else:
+          return self._gripper.get_ee_signal_value('grip')
       else:
         return self._gripper.is_gripping()
     return None
+
   ###############################################################
   #
   #   stop the thread of velocity control loop 

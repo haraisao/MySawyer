@@ -348,11 +348,6 @@ class MySawyer(object):
       if self._navigator.deregister_callback(self.back_id) : self.back_id=None
       if self._navigator.deregister_callback(self.square_id) : self.square_id=None
   
-  def getFeedbackPosJoint(self):
-    res=self._limb.joint_ordered_angles()
-    res.append(self.gripper_state())
-    return res
-
   def gripper_state(self):
     if self.is_gripping :
       return 1
@@ -817,6 +812,147 @@ class MySawyer(object):
   def calc_cart_move2joints(self, x,y,z,roll=0,pitch=0,yew=0, in_tip_frame=True):
     _pose=self.calc_relative_pose(x,y,z,roll,pitch,yew, in_tip_frame)
     return self._limb.ik_request(_pose)
+
+  ########################################################################
+  # for RTC(Common)
+  #
+  def clearAlarms(self):
+    return None
+
+  def getActiveAlarm(self):
+    res=[]
+    return res
+
+  def getFeedbackPosJoint(self):
+    res=self._limb.joint_ordered_angles()
+    res.append(self.gripper_state())
+    return res
+
+  def getManipInfo(self):
+    return None
+
+  def getSoftLimitJoint(self):
+    return None
+
+  def getState(self):
+    return None
+
+  def servoOFF(self):
+    return None
+
+  def servoON(self):
+    return None
+
+  def setSoftLimitJoint(self, softLimit):
+    return None
+  #
+  # for RTC(Middle)
+  #
+  def closeGripper(self):
+    return None
+
+  def getBaseOffset(self):
+    return None
+
+  def getFeedbackPosCartesian(self):
+    return None
+
+  def getMaxSpeedCartesian(self):
+    return None
+
+  def getMaxSpeedJoint(self):
+    return None
+
+  def getMinAccelTimeCartesian(self):
+    return None
+
+  def getMinAccelTimeJoint(self):
+    return None
+
+  def getSoftLimitCartesian(self):
+    return None
+
+  def moveGripper(self, angleRatio):
+    return None
+
+  def moveLinearCartesianAbs(self, carPoint):
+    return None
+
+  def moveLinearCartesianRel(self, carPoint):
+    return None
+
+  def movePTPCartesianAbs(self, carPoint):
+    return None
+
+  def movePTPCartesianRel(self, carPoint):
+    return None
+
+  def movePTPJointAbs(self, jointPoints):
+    return None
+
+  def movePTPJointRel(self, jointPoints):
+    return None
+
+  def openGripper(self):
+    return None
+
+  def pause(self):
+    return None
+
+  def resume(self):
+    return None
+
+  def stop(self):
+    return None
+
+  def setAccelTimeCartesian(self, aclTime):
+    return None
+
+  def setAccelTimeJoint(self, aclTime):
+    return None
+
+  def setBaseOffset(self, offset):
+    return None
+
+  def setControlPointOffset(self, offset):
+    return None
+
+  def setMaxSpeedCartesian(self, speed):
+    return None
+
+  def setMaxSpeedJoint(self, speed):
+    return None
+
+  def setMinAccelTimeCartesian(self, aclTime):
+    return None
+
+  def setMinAccelTimeJoint(self, aclTime):
+    return None
+
+  def setSoftLimitCartesian(self, xLimit, yLimit, zLimit):
+    return None
+
+  def setSpeedCartesian(self, spdRatio):
+    return None
+
+  def setSpeedJoint(self, spdRatio):
+    return None
+
+  def moveCircularCartesianAbs(self, carPointR, carPointT):
+    return None
+
+  def moveCircularCartesianRel(self, carPointR, carPointT):
+    return None
+
+  def setHome(self, jointPoint):
+    return None
+
+  def getHome(self):
+    return None
+
+  def goHome(self):
+    return None
+
 
 ########################################################################
 #

@@ -45,7 +45,7 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         # Must return: result
         try:
           res=self._robot.clearAlarms()
-          if res :
+          if res is None:
             code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.OK
           else:
             code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
@@ -61,11 +61,11 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         # Must return: result, alarms
         try:
           res=self._robot.getActiveAlarm()
-          if res :
+          if res is None:
             code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.OK
           else:
             code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
-          return mk_return_id(code), []
+          return mk_return_id(code), res
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)

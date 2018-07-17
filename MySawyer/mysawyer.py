@@ -866,8 +866,17 @@ class MySawyer(object):
     res.append(self.gripper_state())
     return res
 
+#    manifactur: string
+#    type: string
+#    axisNum: ULONG
+#    cmdCycle: ULONG
+#    isGripper: boolea
   def getManipInfo(self):
-    return None
+    if self._gripper :
+      res=['RethinkRobotics', 'Sawyer', 7, 100, True]
+    else:
+      res=['RethinkRobotics', 'Sawyer', 7, 100, False]
+    return res
 
   def getSoftLimitJoint(self):
     return None

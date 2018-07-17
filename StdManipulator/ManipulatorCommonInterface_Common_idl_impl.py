@@ -21,6 +21,20 @@ from MySawyer import *
 def mk_return_id(code, msg=''):
   return JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.RETURN_ID(code,msg)
 
+#
+# ManipInfo:
+#    manifactur: string
+#    type: string
+#    axisNum: ULONG
+#    cmdCycle: ULONG
+#    isGripper: boolea
+def mk_manipInfo(info):
+  if type(info) is list and len(info) == 5:
+    return JARA_ARM.ManipulatorCommonInterface_Common_idl._0_JARA_ARM.ManipInfo(*info)
+  else:
+    return None
+
+  
 
 #
 #
@@ -92,7 +106,8 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         # *** Implement me
         # Must return: result, mInfo
         try:
-          mInfo=self._robot.getManipInto()
+          info=self._robot.getManipInto()
+          mInfo=mk_manipInfo(info)
           if mInfo is None :
             code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
           else:

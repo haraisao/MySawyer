@@ -321,6 +321,7 @@ def MyModuleInit(manager):
     comp = manager.createComponent("StdManipulator")
 
 def main():
+	#rospy.init_node('MySawyer')
 	mgr = OpenRTM_aist.Manager.init(sys.argv)
 	mgr.setModuleInitProc(MyModuleInit)
 	mgr.activateManager()

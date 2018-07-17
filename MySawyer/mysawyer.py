@@ -1,6 +1,9 @@
 #
 #
 from __future__ import print_function
+import os
+import sys
+import traceback
 import rospy
 import intera_interface
 import numpy as np
@@ -48,7 +51,7 @@ class MySawyer(object):
     self._limits=None
     self._navigator=None
 
-    self._init_nodes()
+    self._init_nodes(limb,light)
     self._get_gripper()
 
     #
@@ -116,12 +119,9 @@ class MySawyer(object):
     #
     # for RTC
     self._is_pause=False
-    self._stop_cmd={}
-    for i,name in enumerate(self._joint_names):
-      self._stop_cmd[name]=0.0
 
 
-  def _init_nodes(self):
+  def _init_nodes(self, limb, light):
     try:
       self._limb=intera_interface.Limb(limb)
 
@@ -138,7 +138,13 @@ class MySawyer(object):
 
       self._joint_names=self._limb.joint_names()
       self._velocity_limits=self._limits.joint_velocity_limits()
+
+      self._stop_cmd={}
+      for i,name in enumerate(self._joint_names):
+        self._stop_cmd[name]=0.0
     except:
+      print("Warning caught exception...")
+      traceback.print_exc()
       pass
 
   def _get_gripper(self):
@@ -148,6 +154,13 @@ class MySawyer(object):
       if self._is_clicksmart:
         if self._gripper.needs_init():
           self._gripper.initialize()
+        _signals=self._gripper.get_ee_signals()
+        if 'grip' in _signals:
+          self._gripper_type='grip'
+        elif 'vaccumeOn' in _signals:
+          self._gripper_type='vaccume'
+        else:
+          self._gripper_type='unknown'
       else:
         if not (self._gripper.is_calibrated() or
                 self._gripper.calibrate() == True):
@@ -1054,11 +1067,15 @@ class SawyerDisplay(object):
   def __init__(self):
     self._image_pub=rospy.Publisher('/robot/head_display', Image, latch=True, queue_size=10)
 
-    self._font24=PIL.ImageFont.truetype('/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc', 24, encoding='unic')
-    self._font32=PIL.ImageFont.truetype('/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc', 32, encoding='unic')
-    self._font42=PIL.ImageFont.truetype('/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc', 42, encoding='unic')
-    self._font48=PIL.ImageFont.truetype('/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc', 48, encoding='unic')
-    self._font64=PIL.ImageFont.truetype('/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc', 64, encoding='unic')
+    self._fontname='/usr/share/fonts/truetype/takao-gothic/TakaoGothic.ttf'
+    if not os.path.exists(self._fontname):
+      self._fontname='/usr/share/fonts/opentype/NotoSansCJK-Regular.ttc'
+
+    self._font24=PIL.ImageFont.truetype(self._fontname, 24, encoding='unic')
+    self._font32=PIL.ImageFont.truetype(self._fontname, 32, encoding='unic')
+    self._font42=PIL.ImageFont.truetype(self._fontname, 42, encoding='unic')
+    self._font48=PIL.ImageFont.truetype(self._fontname, 48, encoding='unic')
+    self._font64=PIL.ImageFont.truetype(self._fontname, 64, encoding='unic')
     self._font=self._font42
 
     self._image=self.mkImage()

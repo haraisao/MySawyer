@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
  <seatml>
    <general name="CtrlGui">
-    <script execfile="env.py" />
-
     <adaptor name="target" type="rtcout" datatype="TimedFloatSeq" />
     <adaptor name="current_pos" type="rtcin" datatype="TimedFloatSeq" />
 
-    <adaptor name="manipCommon" type="consumer" interface="JARA_ARM::ManipulatorCommonInterface_Common|JARA_ARM_ManipulatorCommonInterface_Common" if_class="JARA_ARM.ManipulatorCommonInterface_Common"  />
-    <adaptor name="manipMiddle" type="consumer" interface="JARA_ARM::ManipulatorCommonInterface_Middle|JARA_ARM_ManipulatorCommonInterface_Middle" if_class="JARA_ARM.ManipulatorCommonInterface_Middle"  />
-
+    <adaptor name="manipCommon" type="consumer" 
+      interface="JARA_ARM::ManipulatorCommonInterface_Common|JARA_ARM_ManipulatorCommonInterface_Common"
+      if_class="JARA_ARM.ManipulatorCommonInterface_Common"  />
+    <adaptor name="manipMiddle" type="consumer"
+      interface="JARA_ARM::ManipulatorCommonInterface_Middle|JARA_ARM_ManipulatorCommonInterface_Middle"
+      if_class="JARA_ARM.ManipulatorCommonInterface_Middle"  />
 
   </general>
 

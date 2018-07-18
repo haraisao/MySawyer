@@ -15,21 +15,21 @@
 
   <state name="main_mode">
 
-    <label text="SimpleIO" colspan="4" bg_color="blue" />
+    <label text="Simple Control Panel for Manipulator" colspan="5" bg_color="blue" />
 
     <brk />
     <label text="Input:" />
-    <input id="textIn" width="50" colspan="2">
+    <input id="textIn" width="50" colspan="3">
         <message sendto="str_out" input="main_mode:textIn" />
     </input>
     <button label="Send">
         <message sendto="str_out" input="main_mode:textIn" />
     </button>
     <brk />
-    <button label="Echo">
+    <button label="Info">
       <script>
-        seat.callService("manipMiddle", "echo", seat.getEntry("main_mode:textIn"))
-        seat.appendText("main_mode:textOut", "\n==Finish Echo==")
+        retval=seat.callService("manipMiddle", "manipInfo"))
+        seat.appendText("main_mode:textOut", "\n==="+str(retval)+"===")
       </script>
     </button>
 
@@ -53,10 +53,13 @@
       </script>
     </button>
 
+    <button label="None">
+    </button>
+
     <brk />
   
     <label text="Coming Text:" />
-    <text id="textOut" width="50" height="5" colspan="3" >
+    <text id="textOut" width="50" height="5" colspan="4" >
 	    INIT String...
     </text>
     <brk />

@@ -154,11 +154,13 @@ class MySawyer(object):
       if self._is_clicksmart:
         if self._gripper.needs_init():
           self._gripper.initialize()
+
         _signals=self._gripper.get_ee_signals()
+
         if 'grip' in _signals:
           self._gripper_type='grip'
-        elif 'vaccumeOn' in _signals:
-          self._gripper_type='vaccume'
+        elif 'vacuumOn' in _signals:
+          self._gripper_type='vacuum'
         else:
           self._gripper_type='unknown'
       else:
@@ -895,9 +897,23 @@ class MySawyer(object):
   #
   # for RTC(Middle)
   #
-  def closeGripper(self):
-    self.gripper_close()
+  def openGripper(self):
+    if self._gripper_type == 'vacuum':
+      self.gripper_vacuum(False)
+    else:
+      self.gripper_open()
     return True
+
+  def closeGripper(self):
+    if self._gripper_type == 'vacuum':
+      self.gripper_vacuum(True)
+    else:
+      self.gripper_close()
+    return True
+
+  def moveGripper(self, angleRatio):
+    print('Move gripper')
+    return None
 
   def getBaseOffset(self):
     return None
@@ -920,10 +936,6 @@ class MySawyer(object):
   def getSoftLimitCartesian(self):
     return None
 
-  def moveGripper(self, angleRatio):
-    print('Move gripper')
-    return None
-
   def moveLinearCartesianAbs(self, carPoint):
     return None
 
@@ -941,10 +953,6 @@ class MySawyer(object):
 
   def movePTPJointRel(self, jointPoints):
     return None
-
-  def openGripper(self):
-    self.gripper_open()
-    return True
 
   def pause(self):
     self._is_pause=True

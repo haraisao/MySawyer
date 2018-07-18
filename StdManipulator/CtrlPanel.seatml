@@ -25,7 +25,9 @@
     <button label="Send">
         <message sendto="str_out" input="main_mode:textIn" />
     </button>
+    
     <brk />
+
     <button label="Info">
       <script>
         retval=seat.callService("manipMiddle", "manipInfo"))
@@ -57,7 +59,44 @@
     </button>
 
     <brk />
+
+    <button label="openGripper">
+      <script>
+        retval=seat.callService("manipMiddle", "openGripper")
+        seat.appendText("main_mode:textOut", "\n==="+str(retval)+"===")
+      </script>
+    </button>
+
+    <button label="closeGripper">
+      <script>
+        retval=seat.callService("manipMiddle", "closeGripper")
+        seat.appendText("main_mode:textOut", "\n==="+str(retval)+"===")
+      </script>
+    </button>
+
+    <button label="pause">
+      <script>
+        retval = seat.callService("manipMiddle", "pause")
+        seat.appendText("main_mode:textOut", "\n==="+str(retval)+"===")
+      </script>
+    </button>
+
+    <button label="resume">
+      <script>
+        retval = seat.callService("manipMiddle", "resume")
+        seat.appendText("main_mode:textOut", "\n==="+str(retval)+"===")
+      </script>
+    </button>
+
+    <button label="stop">
+      <script>
+        retval = seat.callService("manipMiddle", "stop")
+        seat.appendText("main_mode:textOut", "\n==="+str(retval)+"===")
+      </script>
+    </button>
+
   
+    <brk />
     <label text="Coming Text:" />
     <text id="textOut" width="50" height="5" colspan="4" >
 	    INIT String...

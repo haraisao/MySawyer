@@ -11,3 +11,4 @@ rtcmaneger.ref
 logback.xml
 *~
 .vscode/
+*_idl.py

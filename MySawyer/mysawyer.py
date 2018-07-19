@@ -932,7 +932,7 @@ class MySawyer(object):
     return True
 
   def moveGripper(self, angleRatio):
-    print('Move gripper')
+    print('Move gripper is not supported')
     return None
 
   def getBaseOffset(self):
@@ -956,16 +956,26 @@ class MySawyer(object):
   def getSoftLimitCartesian(self):
     return None
 
-  def moveLinearCartesianAbs(self, carPoint):
+  def moveLinearCartesianAbs(self, carPos, elbow, flag):
     return None
 
-  def moveLinearCartesianRel(self, carPoint):
+  def moveLinearCartesianRel(self, carPos, elbow, flag):
     return None
 
-  def movePTPCartesianAbs(self, carPoint):
+  def movePTPCartesianAbs(self, carPos, elbow, flag):
+    mx=np.array(carPos)
+    pos=mx[:,3]
+    mx=np.vstack((mx, [0,0,0,1]))
+    qtn=tf.transformations.quaternion_from_matrix(mx)
+
     return None
 
-  def movePTPCartesianRel(self, carPoint):
+  def movePTPCartesianRel(self, carPos, elbow, flag):
+    mx=np.array(carPos)
+    pos=mx[:,3]
+    mx=np.vstack((mx, [0,0,0,1]))
+    qtn=tf.transformations.quaternion_from_matrix(mx)
+
     return None
 
   def movePTPJointAbs(self, jointPoints):
@@ -1009,7 +1019,7 @@ class MySawyer(object):
   def setControlPointOffset(self, offset):
     return None
 
-  def setMaxSpeedCartesian(self, speed):
+  def setMaxSpeedCartesian(self, sp_trans, sp_rot):
     return None
 
   def setMaxSpeedJoint(self, speed):

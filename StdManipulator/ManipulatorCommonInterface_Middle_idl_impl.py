@@ -77,16 +77,18 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
           if pos is None:
             code=JARA_ARM.NG
             msg='Not supported'
+            pos=JARA_ARM.CarPosWithElbow(None, None, None) 
           else:
             code=JARA_ARM.OK
             msg=''
+            pos=JARA_ARM.CarPosWithElbow(pos[0], pos[1], pos[2]) 
           return JARA_ARM.RETURN_ID(code, msg), pos
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
         except:
-          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error'),None
 
     # RETURN_ID getMaxSpeedCartesian(out CartesianSpeed speed)
     def getMaxSpeedCartesian(self):
@@ -96,16 +98,18 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
           if speed is None:
             code=JARA_ARM.NG
             msg='Not supported'
+            speed=JARA_ARM.CartesianSpeed(0,0) 
           else:
             code=JARA_ARM.OK
             msg=''
+            speed=JARA_ARM.CartesianSpeed(speed[0],speed[1]) 
           return JARA_ARM.RETURN_ID(code, msg), speed
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
         except:
-          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error'), None
 
     # RETURN_ID getMaxSpeedJoint(out DoubleSeq speed)
     def getMaxSpeedJoint(self):
@@ -115,6 +119,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
           if speed is None:
             code=JARA_ARM.NG
             msg='Not supported'
+            speed=[]
           else:
             code=JARA_ARM.OK
             msg=''
@@ -124,7 +129,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
         except:
-          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error'),None
 
     # RETURN_ID getMinAccelTimeCartesian(out double aclTime)
     def getMinAccelTimeCartesian(self):
@@ -143,7 +148,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
         except:
-          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error'),None
 
     # RETURN_ID getMinAccelTimeJoint(out double aclTime)
     def getMinAccelTimeJoint(self):
@@ -162,7 +167,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
         except:
-          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error'), None
 
     # RETURN_ID getSoftLimitCartesian(out LimitValue xLimit, out LimitValue yLimit, out LimitValue zLimit)
     def getSoftLimitCartesian(self):
@@ -172,16 +177,22 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
           if limits is None:
             code=JARA_ARM.NG
             msg='Not supported'
+            limitx=JARA_ARM.LimitValue(0,0)
+            limity=JARA_ARM.LimitValue(0,0)
+            limitz=JARA_ARM.LimitValue(0,0)
           else:
             code=JARA_ARM.OK
             msg=''
-          return JARA_ARM.RETURN_ID(code, msg), limits[0],limits[1],limits[2]
+            limitx=JARA_ARM.LimitValue(limits[0][0], limits[0][1])
+            limity=JARA_ARM.LimitValue(limits[1][0], limits[1][1])
+            limitz=JARA_ARM.LimitValue(limits[2][0], limits[2][1])
+          return JARA_ARM.RETURN_ID(code, msg), limitx,limity,limitz
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
         except:
-          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error'),None,None,None
 
     # RETURN_ID moveGripper(in ULONG angleRatio)
     def moveGripper(self, angleRatio):
@@ -206,7 +217,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
     def moveLinearCartesianAbs(self, carPoint):
         # Must return: result
         try:
-          res=self._robot.moveLinearCartesianAbs(carPoints)
+          res=self._robot.moveLinearCartesianAbs(carPoint.carPos, carPoint.elbow, carPoint.structFlag)
           if res is None:
             code=JARA_ARM.NG
             msg='Not supported'
@@ -225,7 +236,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
     def moveLinearCartesianRel(self, carPoint):
         # Must return: result
         try:
-          res=self._robot.moveLinearCartesianRel(carPoints)
+          res=self._robot.moveLinearCartesianRel(carPoint.carPos, carPoint.elbow, carPoint.structFlag)
           if res is None:
             code=JARA_ARM.NG
             msg='Not supported'
@@ -245,7 +256,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
     def movePTPCartesianAbs(self, carPoint):
         # Must return: result
         try:
-          res=self._robot.movePTPCartesianAbs(carPoints)
+          res=self._robot.movePTPCartesianAbs(carPoint.carPos, carPoint.elbow, carPoint.structFlag)
           if res is None:
             code=JARA_ARM.NG
             msg='Not supported'
@@ -264,7 +275,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
     def movePTPCartesianRel(self, carPoint):
         # Must return: result
         try:
-          res=self._robot.movePTPCartesianRel(carPoints)
+          res=self._robot.movePTPCartesianRel(carPoint.carPos, carPoint.elbow, carPoint.structFlag)
           if res is None:
             code=JARA_ARM.NG
             msg='Not supported'
@@ -473,7 +484,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
     def setMaxSpeedCartesian(self, speed):
         # Must return: result
         try:
-          res=self._robot.setMaxSpeedCartesian(speed)
+          res=self._robot.setMaxSpeedCartesian(speed.translation, speed.rotation)
           if res is None:
             code=JARA_ARM.NG
             msg='Not supported'
@@ -549,7 +560,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
     def setSoftLimitCartesian(self, xLimit, yLimit, zLimit):
         # Must return: result
         try:
-          res=self._robot.setSoftLimitCartesian(xLimt, yLimit, zLimit)
+          res=self._robot.setSoftLimitCartesian([xLimt.upper, xLimit.lower], [yLimit.upper, xLimit.lower], [zLimit.upper, zLimit.lower])
           if res is None:
             code=JARA_ARM.NG
             msg='Not supported'
@@ -605,7 +616,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
     def moveCircularCartesianAbs(self, carPointR, carPointT):
         # Must return: result
         try:
-          res=self._robot.moveCircularCartesianAbs(carPointR, carPointT)
+          res=self._robot.moveCircularCartesianAbs([carPointR.catPos, carPointR.elbow, carPointR.structFlag], [carPointT.catPos, carPointT.elbow, carPointT.structFlag])
           if res is None:
             code=JARA_ARM.NG
             msg='Not supported'
@@ -624,7 +635,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
     def moveCircularCartesianRel(self, carPointR, carPointT):
         # Must return: result
         try:
-          res=self._robot.moveCircularCartesianRel(carPointR, carPointT)
+          res=self._robot.moveCircularCartesianRel([carPointR.catPos, carPointR.elbow, carPointR.structFlag], [carPointT.catPos, carPointT.elbow, carPointT.structFlag])
           if res is None:
             code=JARA_ARM.NG
             msg='Not supported'

@@ -47,7 +47,8 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
-       
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID getBaseOffset(out HgMatrix offset)
     def getBaseOffset(self):
@@ -65,6 +66,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID getFeedbackPosCartesian(out CarPosWithElbow pos)
     def getFeedbackPosCartesian(self):
         # Must return: result, pos
@@ -80,6 +84,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID getMaxSpeedCartesian(out CartesianSpeed speed)
     def getMaxSpeedCartesian(self):
@@ -97,6 +104,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID getMaxSpeedJoint(out DoubleSeq speed)
     def getMaxSpeedJoint(self):
         # Must return: result, speed
@@ -112,6 +122,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID getMinAccelTimeCartesian(out double aclTime)
     def getMinAccelTimeCartesian(self):
@@ -129,6 +142,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID getMinAccelTimeJoint(out double aclTime)
     def getMinAccelTimeJoint(self):
         # Must return: result, aclTime
@@ -144,6 +160,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID getSoftLimitCartesian(out LimitValue xLimit, out LimitValue yLimit, out LimitValue zLimit)
     def getSoftLimitCartesian(self):
@@ -161,6 +180,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID moveGripper(in ULONG angleRatio)
     def moveGripper(self, angleRatio):
         # Must return: result
@@ -176,6 +198,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID moveLinearCartesianAbs(in CarPosWithElbow carPoint)
     def moveLinearCartesianAbs(self, carPoint):
@@ -193,6 +218,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID moveLinearCartesianRel(in CarPosWithElbow carPoint)
     def moveLinearCartesianRel(self, carPoint):
         # Must return: result
@@ -208,6 +236,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
 
     # RETURN_ID movePTPCartesianAbs(in CarPosWithElbow carPoint)
@@ -226,6 +257,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID movePTPCartesianRel(in CarPosWithElbow carPoint)
     def movePTPCartesianRel(self, carPoint):
         # Must return: result
@@ -241,6 +275,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID movePTPJointAbs(in JointPos jointPoints)
     def movePTPJointAbs(self, jointPoints):
@@ -258,6 +295,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID movePTPJointRel(in JointPos jointPoints)
     def movePTPJointRel(self, jointPoints):
         # Must return: result
@@ -273,6 +313,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID openGripper()
     def openGripper(self):
@@ -290,6 +333,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID pause()
     def pause(self):
         # Must return: result
@@ -305,6 +351,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID resume()
     def resume(self):
@@ -322,6 +371,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID stop()
     def stop(self):
         # Must return: result
@@ -337,6 +389,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID setAccelTimeCartesian(in double aclTime)
     def setAccelTimeCartesian(self, aclTime):
@@ -354,6 +409,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID setAccelTimeJoint(in double aclTime)
     def setAccelTimeJoint(self, aclTime):
         # Must return: result
@@ -369,6 +427,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID setBaseOffset(in HgMatrix offset)
     def setBaseOffset(self, offset):
@@ -386,6 +447,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID setControlPointOffset(in HgMatrix offset)
     def setControlPointOffset(self, offset):
         # Must return: result
@@ -401,6 +465,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID setMaxSpeedCartesian(in CartesianSpeed speed)
     def setMaxSpeedCartesian(self, speed):
@@ -418,6 +485,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID setMaxSpeedJoint(in DoubleSeq speed)
     def setMaxSpeedJoint(self, speed):
         # Must return: result
@@ -433,6 +503,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID setMinAccelTimeCartesian(in double aclTime)
     def setMinAccelTimeCartesian(self, aclTime):
@@ -450,6 +523,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID setMinAccelTimeJoint(in double aclTime)
     def setMinAccelTimeJoint(self, aclTime):
         # Must return: result
@@ -466,6 +542,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID setSoftLimitCartesian(in LimitValue xLimit, in LimitValue yLimit, in LimitValue zLimit)
     def setSoftLimitCartesian(self, xLimit, yLimit, zLimit):
         # Must return: result
@@ -480,6 +559,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
           return JARA_ARM.RETURN_ID(code, msg)
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID setSpeedCartesian(in ULONG spdRatio)
     def setSpeedCartesian(self, spdRatio):
@@ -497,6 +579,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID setSpeedJoint(in ULONG spdRatio)
     def setSpeedJoint(self, spdRatio):
         # Must return: result
@@ -512,6 +597,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID moveCircularCartesianAbs(in CarPosWithElbow carPointR, in CarPosWithElbow carPointT)
     def moveCircularCartesianAbs(self, carPointR, carPointT):
@@ -529,6 +617,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID moveCircularCartesianRel(in CarPosWithElbow carPointR, in CarPosWithElbow carPointT)
     def moveCircularCartesianRel(self, carPointR, carPointT):
         # Must return: result
@@ -544,6 +635,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID setHome(in JointPos jointPoint)
     def setHome(self, jointPoint):
@@ -561,6 +655,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID getHome(out JointPos jointPoint)
     def getHome(self):
         # Must return: result, jointPoint
@@ -577,6 +674,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID goHome()
     def goHome(self):
         # Must return: result
@@ -592,6 +692,9 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
 
 if __name__ == "__main__":

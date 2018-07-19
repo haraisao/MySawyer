@@ -11,6 +11,9 @@ import threading
 import cv2
 import cv_bridge
 
+import tf
+import JARA_ARM
+
 
 #
 #
@@ -121,6 +124,8 @@ class MySawyer(object):
     self._is_pause=False
 
 
+  #
+  #
   def _init_nodes(self, limb, light):
     try:
       self._limb=intera_interface.Limb(limb)
@@ -147,6 +152,8 @@ class MySawyer(object):
       traceback.print_exc()
       pass
 
+  #
+  3
   def _get_gripper(self, gripper_reverse):
     try:
       self._gripper=intera_interface.get_current_gripper_interface()
@@ -1189,4 +1196,5 @@ class SawyerDisplay(object):
 #  Function....
 def maxmin(v, mx, mn):
   return np.max([np.min([v,mx]), mn])
+
 

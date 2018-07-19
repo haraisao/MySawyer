@@ -63,6 +63,9 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID getActiveAlarm(out AlarmSeq alarms)
     def getActiveAlarm(self):
         # Must return: result, alarms
@@ -80,6 +83,9 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID getFeedbackPosJoint(out JointPos pos)
     def getFeedbackPosJoint(self):
         # Must return: result, pos
@@ -95,6 +101,9 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID getManipInfo(out ManipInfo mInfo)
     def getManipInfo(self):
@@ -113,6 +122,9 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID getSoftLimitJoint(out LimitSeq softLimit)
     def getSoftLimitJoint(self):
         # Must return: result, softLimit
@@ -128,6 +140,9 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID getState(out ULONG state)
     def getState(self):
@@ -145,6 +160,9 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID servoOFF()
     def servoOFF(self):
         # Must return: result
@@ -160,6 +178,9 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
     # RETURN_ID servoON()
     def servoON(self):
@@ -177,6 +198,9 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
+
     # RETURN_ID setSoftLimitJoint(in LimitSeq softLimit)
     def setSoftLimitJoint(self, softLimit):
         # Must return: result
@@ -192,6 +216,9 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
+
+        except:
+          return JARA_ARM.RETURN_ID(JARA_ARM.NG, 'Unknown Error')
 
 
 

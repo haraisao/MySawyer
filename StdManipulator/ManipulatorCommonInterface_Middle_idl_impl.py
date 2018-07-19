@@ -308,7 +308,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         # *** Implement me
         # Must return: result
         try:
-          res=self._robot.pause()
+          res=self._robot.pause_motion()
           if res is None:
             code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
           else:
@@ -324,7 +324,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         # *** Implement me
         # Must return: result
         try:
-          res=self._robot.resume()
+          res=self._robot.resume_motion()
           if res is None:
             code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
           else:
@@ -340,7 +340,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
         # *** Implement me
         # Must return: result
         try:
-          res=self._robot.stop()
+          res=self._robot.stop_motion()
           if res is None:
             code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
           else:

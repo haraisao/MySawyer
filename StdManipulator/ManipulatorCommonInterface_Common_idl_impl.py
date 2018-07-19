@@ -19,7 +19,7 @@ from MySawyer import *
 #
 #
 def mk_return_id(code, msg=''):
-  return JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.RETURN_ID(code,msg)
+  return JARA_ARM.RETURN_ID(code,msg)
 
 #
 # ManipInfo:
@@ -29,9 +29,8 @@ def mk_return_id(code, msg=''):
 #    cmdCycle: ULONG
 #    isGripper: boolea
 def mk_manipInfo(info):
-  print(info)
   if type(info) is list and len(info) == 5:
-    return JARA_ARM.ManipulatorCommonInterface_Common_idl._0_JARA_ARM.ManipInfo(*info)
+    return JARA_ARM.ManipInfo(*info)
   else:
     return None
 
@@ -55,65 +54,65 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
 
     # RETURN_ID clearAlarms()
     def clearAlarms(self):
-        #raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
-        # *** Implement me
         # Must return: result
         try:
           res=self._robot.clearAlarms()
           if res is None:
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.OK
+            code=JARA_ARM.OK
+            msg=''
           else:
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
-          return mk_return_id(code)
+            code=JARA_ARM.NG
+            msg='Not supported'
+          return JARA_ARM.RETURN_ID(code, msg)
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
     # RETURN_ID getActiveAlarm(out AlarmSeq alarms)
     def getActiveAlarm(self):
-        #raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
-        # *** Implement me
         # Must return: result, alarms
         try:
           res=self._robot.getActiveAlarm()
           if res is None:
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.OK
+            code=JARA_ARM.OK
+            msg=''
           else:
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
-          return mk_return_id(code), res
+            code=JARA_ARM.NG
+            msg='Not supported'
+          return JARA_ARM.RETURN_ID(code, msg), res
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
     # RETURN_ID getFeedbackPosJoint(out JointPos pos)
     def getFeedbackPosJoint(self):
-        #raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
-        # *** Implement me
         # Must return: result, pos
         try:
           pos=self._robot.getFeedbackPosJoint()
           if pos is None :
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
+            code=JARA_ARM.OK
+            msg=''
           else:
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.OK
-          return mk_return_id(code),pos
+            code=JARA_ARM.NG
+            msg='Not supported'
+          return JARA_ARM.RETURN_ID(code, msg), pos
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
     # RETURN_ID getManipInfo(out ManipInfo mInfo)
     def getManipInfo(self):
-        #raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
-        # *** Implement me
         # Must return: result, mInfo
         try:
           info=self._robot.getManipInfo()
           mInfo=mk_manipInfo(info)
           if mInfo is None :
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
+            code=JARA_ARM.NG
+            msg=str(info)
           else:
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.OK
-          return mk_return_id(code),mInfo
+            code=JARA_ARM.OK
+            msg=''
+          return JARA_ARM.RETURN_ID(code, msg), mInfo
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)

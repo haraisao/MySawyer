@@ -74,11 +74,11 @@ class MySawyer(object):
     self.max_record_time=30
     self._accuracy=0.01  # 0.05 this value use velocity control mode and position control mode
     self._recording_intval=0.5
-
+:
     #
     # for velicity control mode
     self._running=True
-    self._target=[0, -1.4, 0, 2, 0, 0.5, 3.3] ### initial position 
+    self._target=[0.0, -1.178, 0.0, 2.178, 0.0, 0.567, 3.313] ### initial position 
     self._target_motion=[]
     self._vmax=0.4
     self._vrate=2.0
@@ -954,16 +954,16 @@ class MySawyer(object):
   def movePTPJointRel(self, jointPoints):
     return None
 
-  def pause(self):
+  def pause_motion(self):
     self._is_pause=True
     self._limb.set_joint_velocities(self._stop_cmd)
     return True
 
-  def resume(self):
+  def resume_motion(self):
     self._is_pause=False
     return True
 
-  def stop(self):
+  def stop_motion(self):
     self.set_target()
     return True
 

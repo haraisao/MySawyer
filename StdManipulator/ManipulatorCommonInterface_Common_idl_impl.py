@@ -17,11 +17,6 @@ import JARA_ARM, JARA_ARM__POA
 from MySawyer import *
 
 #
-#
-def mk_return_id(code, msg=''):
-  return JARA_ARM.RETURN_ID(code,msg)
-
-#
 # ManipInfo:
 #    manifactur: string
 #    type: string
@@ -58,11 +53,11 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         try:
           res=self._robot.clearAlarms()
           if res is None:
-            code=JARA_ARM.OK
-            msg=''
-          else:
             code=JARA_ARM.NG
             msg='Not supported'
+          else:
+            code=JARA_ARM.OK
+            msg=''
           return JARA_ARM.RETURN_ID(code, msg)
 
         except AttributeError:
@@ -74,11 +69,12 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         try:
           res=self._robot.getActiveAlarm()
           if res is None:
-            code=JARA_ARM.OK
-            msg=''
-          else:
             code=JARA_ARM.NG
             msg='Not supported'
+          else:
+            code=JARA_ARM.OK
+            msg=''
+
           return JARA_ARM.RETURN_ID(code, msg), res
 
         except AttributeError:
@@ -90,11 +86,11 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         try:
           pos=self._robot.getFeedbackPosJoint()
           if pos is None :
-            code=JARA_ARM.OK
-            msg=''
-          else:
             code=JARA_ARM.NG
             msg='Not supported'
+          else:
+            code=JARA_ARM.OK
+            msg=''
           return JARA_ARM.RETURN_ID(code, msg), pos
 
         except AttributeError:
@@ -119,80 +115,80 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
 
     # RETURN_ID getSoftLimitJoint(out LimitSeq softLimit)
     def getSoftLimitJoint(self):
-        #raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
-        # *** Implement me
         # Must return: result, softLimit
         try:
           softLimit=self._robot.getSoftLimitJoint()
           if softLimit is None :
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
+            code=JARA_ARM.NG
+            msg='Not supported'
           else:
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.OK
-          return mk_return_id(code),softLimit
+            code=JARA_ARM.OK
+            msg=''
+          return JARA_ARM.RETURN_ID(code, msg), softLimit
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
     # RETURN_ID getState(out ULONG state)
     def getState(self):
-        #raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
-        # *** Implement me
         # Must return: result, state
         try:
           state=self._robot.getState()
           if state is None :
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
+            code=JARA_ARM.NG
+            msg='Not supported'
           else:
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.OK
-          return mk_return_id(code),state
+            code=JARA_ARM.OK
+            msg=''
+          return JARA_ARM.RETURN_ID(code, msg),state
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
     # RETURN_ID servoOFF()
     def servoOFF(self):
-        #raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
-        # *** Implement me
         # Must return: result
         try:
           res=self._robot.servoOFF()
-          if res is None :
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
+          if res is None:
+            code=JARA_ARM.NG
+            msg='Not supported'
           else:
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.OK
-          return mk_return_id(code)
+            code=JARA_ARM.OK
+            msg=''
+          return JARA_ARM.RETURN_ID(code, msg)
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
     # RETURN_ID servoON()
     def servoON(self):
-        #raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
-        # *** Implement me
         # Must return: result
         try:
           res=self._robot.servoON()
-          if res is None :
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
+          if res is None:
+            code=JARA_ARM.NG
+            msg='Not supported'
           else:
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.OK
-          return mk_return_id(code)
+            code=JARA_ARM.OK
+            msg=''
+          return JARA_ARM.RETURN_ID(code, msg)
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
 
     # RETURN_ID setSoftLimitJoint(in LimitSeq softLimit)
     def setSoftLimitJoint(self, softLimit):
-        #raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)
-        # *** Implement me
         # Must return: result
         try:
           res=self._robot.setSoftLimitJoint(softLimit)
-          if res is None :
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG
+          if res is None:
+            code=JARA_ARM.NG
+            msg='Not supported'
           else:
-            code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.OK
-          return mk_return_id(code)
+            code=JARA_ARM.OK
+            msg=''
+          return JARA_ARM.RETURN_ID(code, msg)
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)

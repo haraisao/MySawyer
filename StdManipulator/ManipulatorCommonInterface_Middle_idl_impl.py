@@ -18,12 +18,6 @@ from MySawyer import *
 
 #
 #
-def mk_return_id(code, msg=''):
-  return JARA_ARM.RETURN_ID(code,msg)
-
-
-#
-#
 class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterface_Middle):
     """
     @class ManipulatorCommonInterface_Middle_i

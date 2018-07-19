@@ -22,9 +22,21 @@
     <input id="textIn" width="50" colspan="3">
         <message sendto="str_out" input="main_mode:textIn" />
     </input>
-    <button label="Send">
-        <message sendto="str_out" input="main_mode:textIn" />
+
+    <button label="MoveAbs">
+      <script>
+         print("Call Move")
+         seat.callService("manipMiddle", "movePTPJointAbs", eval(seat.getEntry("main_mode:textIn")))
+      </script>
     </button>
+
+    <button label="MoveRel">
+      <script>
+         print("Call MoveRel")
+         seat.callService("manipMiddle", "movePTPJointRel", eval(seat.getEntry("main_mode:textIn")))
+      </script>
+    </button>
+    
     
     <brk />
 
@@ -55,7 +67,15 @@
       </script>
     </button>
 
-    <button label="None">
+    <button label="getPos">
+      <script>
+        retid, pos = seat.callService("manipCommon", "getFeedbackPosJoint")
+        if retid.id == 0:	
+          seat.setEntry("main_mode:textIn", str(pos))
+          seat.appendText("main_mode:textOut", "\n===GetCurrentPosition===")
+        else:
+          seat.appendText("main_mode:textOut", "\n===ERR:"+retid.comment+"===")
+      </script>
     </button>
 
     <brk />

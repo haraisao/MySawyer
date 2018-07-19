@@ -37,7 +37,7 @@ from sensor_msgs.msg import Image
 class MySawyer(object):
   #
   #  Init class
-  def __init__(self, name='MySawyer', limb='right', anonymous=True, disable_signals=True, light=True):
+  def __init__(self, name='MySawyer', limb='right', anonymous=True, disable_signals=True, light=True, gripper_reverse=False):
     rospy.init_node(name, anonymous=anonymous, disable_signals=disable_signals)
    # rospy.sleep(1)
     #
@@ -52,7 +52,7 @@ class MySawyer(object):
     self._navigator=None
 
     self._init_nodes(limb,light)
-    self._get_gripper()
+    self._get_gripper(gripper_reverse)
 
     #
     # Default Variables
@@ -74,7 +74,6 @@ class MySawyer(object):
     self.max_record_time=30
     self._accuracy=0.01  # 0.05 this value use velocity control mode and position control mode
     self._recording_intval=0.5
-:
     #
     # for velicity control mode
     self._running=True
@@ -82,6 +81,7 @@ class MySawyer(object):
     self._target_motion=[]
     self._vmax=0.4
     self._vrate=2.0
+    self._is_moving=False
 
     #
     # for interaction mode
@@ -147,10 +147,11 @@ class MySawyer(object):
       traceback.print_exc()
       pass
 
-  def _get_gripper(self):
+  def _get_gripper(self, gripper_reverse):
     try:
       self._gripper=intera_interface.get_current_gripper_interface()
       self._is_clicksmart = isinstance(self._gripper, intera_interface.SimpleClickSmartGripper)
+      self._gripper_reverse=gripper_reverse
       if self._is_clicksmart:
         if self._gripper.needs_init():
           self._gripper.initialize()
@@ -170,6 +171,8 @@ class MySawyer(object):
     except:
       self._gripper=None
       self._is_clicksmart=False
+      self._gripper_type=None
+      self._gripper_reverse=None
       
   #
   #
@@ -647,7 +650,7 @@ class MySawyer(object):
     if self._gripper and self._gripper.is_ready():
       if self._is_clicksmart:
         if 'grip' in self._gripper.get_ee_signals() :
-          self._gripper.set_ee_signal_value('grip', False)
+          self._gripper.set_ee_signal_value('grip', self._gripper_reverse)
         else:
           return None
       else:
@@ -659,7 +662,8 @@ class MySawyer(object):
     if self._gripper and self._gripper.is_ready():
       if self._is_clicksmart:
         if 'grip' in self._gripper.get_ee_signals() :
-          self._gripper.set_ee_signal_value('grip', True)
+          print(self._gripper_reverse)
+          self._gripper.set_ee_signal_value('grip', not self._gripper_reverse)
         else:
           return None
       else:
@@ -709,7 +713,9 @@ class MySawyer(object):
     if np.linalg.norm(dv) < self._accuracy:
       if func:
         func(self)
+      self._is_moving=False
     else:
+      self._is_moving=True
       vels = map(lambda x: x*self._vrate, dv)  
       for i,name in enumerate(self._joint_names):
         cmd[name]=maxmin(vels[i] , self._velocity_limits[name]*self._vmax, -self._velocity_limits[name]*self._vmax)
@@ -864,7 +870,7 @@ class MySawyer(object):
     return res
 
   def getFeedbackPosJoint(self):
-    res=self._limb.joint_ordered_angles()
+    res=map(lambda x: np.rad2deg(x), self._limb.joint_ordered_angles())
     res.append(self.gripper_state())
     return res
 
@@ -884,7 +890,14 @@ class MySawyer(object):
     return None
 
   def getState(self):
-    return None
+    stat=self._rs.state()
+    if stat.enabled :
+      res=0x01
+      if self._is_moveing :
+        res=0x01 | 0x02
+    else:
+      res=0x00
+    return res
 
   def servoOFF(self):
     return None
@@ -949,10 +962,20 @@ class MySawyer(object):
     return None
 
   def movePTPJointAbs(self, jointPoints):
-    return None
+    if len(jointPoints) >= 7:
+      pos=map(lambda x: np.deg2rad(x), jointPoints[:7])
+      self._target=pos
+      return True
+    else:
+      return False
 
   def movePTPJointRel(self, jointPoints):
-    return None
+    if len(jointPoints) >= 7:
+      pos=map(lambda x: np.deg2rad(x), jointPoints[:7])
+      self._target=np.array(self._target) + np.array(pos)
+      return True
+    else:
+      return False
 
   def pause_motion(self):
     self._is_pause=True

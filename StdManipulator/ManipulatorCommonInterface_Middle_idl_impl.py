@@ -524,7 +524,7 @@ class ManipulatorCommonInterface_Middle_i (JARA_ARM__POA.ManipulatorCommonInterf
           else:
             code=JARA_ARM.OK
             msg=''
-          return JARA_ARM.RETURN_ID(code, msg))
+          return JARA_ARM.RETURN_ID(code, msg)
 
         except AttributeError:
           raise CORBA.NO_IMPLEMENT(0, CORBA.COMPLETED_NO)

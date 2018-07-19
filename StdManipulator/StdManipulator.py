@@ -45,17 +45,21 @@ stdmanipulator_spec = ["implementation_id", "StdManipulator",
 		 "max_instance",      "1", 
 		 "language",          "Python", 
 		 "lang_type",         "SCRIPT",
-         	 "conf.default.vmax", "0.4",
+         	 "conf.default.vmax", "0.3",
 		 "conf.default.vrate", "2.0",
 		 "conf.default.accuracy", "0.01",
+		 "conf.default.gripper_reverse", "1",
 
 		 "conf.__widget__.vmax", "text",
 		 "conf.__widget__.vrate", "text",
 		 "conf.__widget__.accuracy", "text",
+		 "conf.__widget__.gripper_reverse", "radio",
+		 "conf.__constraints__.gripper_reverse", "(0,1)",
 
-         "conf.__type__.vmax", "float",
-         "conf.__type__.vrate", "float",
-         "conf.__type__.accuracy", "float",
+                 "conf.__type__.vmax", "float",
+                 "conf.__type__.vrate", "float",
+                 "conf.__type__.accuracy", "float",
+                 "conf.__type__.gripper_reverse", "int",
 		 ""]
 # </rtc-template>
 
@@ -101,17 +105,17 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 
 		"""
 		"""
-		self._manipMiddlePort = OpenRTM_aist.CorbaPort("manipMiddle")
-		"""
-		"""
 		self._mnipCommonPort = OpenRTM_aist.CorbaPort("mnipCommon")
+		"""
+		"""
+		self._manipMiddlePort = OpenRTM_aist.CorbaPort("manipMiddle")
 
 		"""
 		"""
-		self._JARA_ARM_ManipulatorCommonInterface_Middle = ManipulatorCommonInterface_Middle_i()
-		"""
-		"""
 		self._JARA_ARM_ManipulatorCommonInterface_Common = ManipulatorCommonInterface_Common_i()
+		"""
+		"""
+		self._JARA_ARM_ManipulatorCommonInterface_Middle = ManipulatorCommonInterface_Middle_i()
 		
 
 
@@ -120,9 +124,9 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
                 """
 
 		 - Name:  vmax
-		 - DefaultValue: 0.4
+		 - DefaultValue: 0.3
 		"""
-		self._vmax = [0.4]
+		self._vmax = [0.3]
 		"""
 
 		 - Name:  vrate
@@ -135,6 +139,13 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 		 - DefaultValue: 0.01
 		"""
 		self._accuracy = [0.01]
+               	"""
+
+		 - Name:  gripper_reverse
+		 - DefaultValue: True
+		"""
+		self._gripper_reverse = [1]
+
 		
 		# </rtc-template>
 
@@ -151,9 +162,10 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 	def onInitialize(self):
                 self._robot=None
 		# Bind variables and configuration variable
-          	self.bindParameter("vmax", self._vmax, "0.4")
+          	self.bindParameter("vmax", self._vmax, "0.3")
 		self.bindParameter("vrate", self._vrate, "2.0")
 		self.bindParameter("accuracy", self._accuracy, "0.01")
+		self.bindParameter("gripper_reverse", self._gripper_reverse, "1")
 		
 		# Set InPort buffers
 		self.addInPort("joints",self._jointsIn)
@@ -165,14 +177,14 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 		self.addOutPort("out_torque",self._out_torqueOut)
 		
 		# Set service provider to Ports
-		self._manipMiddlePort.registerProvider("JARA_ARM_ManipulatorCommonInterface_Middle", "JARA_ARM::ManipulatorCommonInterface_Middle", self._JARA_ARM_ManipulatorCommonInterface_Middle)
 		self._mnipCommonPort.registerProvider("JARA_ARM_ManipulatorCommonInterface_Common", "JARA_ARM::ManipulatorCommonInterface_Common", self._JARA_ARM_ManipulatorCommonInterface_Common)
+		self._manipMiddlePort.registerProvider("JARA_ARM_ManipulatorCommonInterface_Middle", "JARA_ARM::ManipulatorCommonInterface_Middle", self._JARA_ARM_ManipulatorCommonInterface_Middle)
 		
 		# Set service consumers to Ports
 		
 		# Set CORBA Service Ports
-		self.addPort(self._manipMiddlePort)
 		self.addPort(self._mnipCommonPort)
+		self.addPort(self._manipMiddlePort)
 		
 		return RTC.RTC_OK
 	
@@ -262,7 +274,9 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 		#
 		#
 	def onExecute(self, ec_id):
-                #self._robot._vctrl_one_cycle(self._robot.report)
+		self._robot._vmax=self._vmax[0]
+		self._robot._vrate=self._vrate[0]
+		self._robot._gripper_reverse=(self._gripper_reverse[0] == 1)
                 self._robot.onExecute()
 	
 		return RTC.RTC_OK

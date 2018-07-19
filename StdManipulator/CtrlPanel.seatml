@@ -30,7 +30,7 @@
 
     <button label="Info">
       <script>
-        retval=seat.callService("manipMiddle", "manipInfo"))
+        retval=seat.callService("manipCommon", "getManipInfo")
         seat.appendText("main_mode:textOut", "\n==="+str(retval)+"===")
       </script>
     </button>

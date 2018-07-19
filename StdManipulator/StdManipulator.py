@@ -45,6 +45,17 @@ stdmanipulator_spec = ["implementation_id", "StdManipulator",
 		 "max_instance",      "1", 
 		 "language",          "Python", 
 		 "lang_type",         "SCRIPT",
+         	 "conf.default.vmax", "0.4",
+		 "conf.default.vrate", "2.0",
+		 "conf.default.accuracy", "0.01",
+
+		 "conf.__widget__.vmax", "text",
+		 "conf.__widget__.vrate", "text",
+		 "conf.__widget__.accuracy", "text",
+
+         "conf.__type__.vmax", "float",
+         "conf.__type__.vrate", "float",
+         "conf.__type__.accuracy", "float",
 		 ""]
 # </rtc-template>
 
@@ -106,6 +117,24 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 
 		# initialize of configuration-data.
 		# <rtc-template block="init_conf_param">
+                """
+
+		 - Name:  vmax
+		 - DefaultValue: 0.4
+		"""
+		self._vmax = [0.4]
+		"""
+
+		 - Name:  vrate
+		 - DefaultValue: 2.0
+		"""
+		self._vrate = [2.0]
+		"""
+
+		 - Name:  accuracy
+		 - DefaultValue: 0.01
+		"""
+		self._accuracy = [0.01]
 		
 		# </rtc-template>
 
@@ -120,8 +149,11 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 	# 
 	#
 	def onInitialize(self):
-		# Bind variables and configuration variable
                 self._robot=None
+		# Bind variables and configuration variable
+          	self.bindParameter("vmax", self._vmax, "0.4")
+		self.bindParameter("vrate", self._vrate, "2.0")
+		self.bindParameter("accuracy", self._accuracy, "0.01")
 		
 		# Set InPort buffers
 		self.addInPort("joints",self._jointsIn)
@@ -230,7 +262,8 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 		#
 		#
 	def onExecute(self, ec_id):
-                self._robot._vctrl_one_cycle(self._robot.report)
+                #self._robot._vctrl_one_cycle(self._robot.report)
+                self._robot.onExecute()
 	
 		return RTC.RTC_OK
 	
@@ -321,7 +354,6 @@ def MyModuleInit(manager):
     comp = manager.createComponent("StdManipulator")
 
 def main():
-	#rospy.init_node('MySawyer')
 	mgr = OpenRTM_aist.Manager.init(sys.argv)
 	mgr.setModuleInitProc(MyModuleInit)
 	mgr.activateManager()

@@ -29,6 +29,7 @@ def mk_return_id(code, msg=''):
 #    cmdCycle: ULONG
 #    isGripper: boolea
 def mk_manipInfo(info):
+  print(info)
   if type(info) is list and len(info) == 5:
     return JARA_ARM.ManipulatorCommonInterface_Common_idl._0_JARA_ARM.ManipInfo(*info)
   else:
@@ -106,7 +107,7 @@ class ManipulatorCommonInterface_Common_i (JARA_ARM__POA.ManipulatorCommonInterf
         # *** Implement me
         # Must return: result, mInfo
         try:
-          info=self._robot.getManipInto()
+          info=self._robot.getManipInfo()
           mInfo=mk_manipInfo(info)
           if mInfo is None :
             code=JARA_ARM.ManipulatorCommonInterface_DataTypes_idl._0_JARA_ARM.NG

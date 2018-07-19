@@ -842,7 +842,7 @@ class MySawyer(object):
   #
   #  onExecuted
   #
-  def onExecuted(self):
+  def onExecute(self):
     cuff_state=self._cuff.cuff_button()
     if self._is_pause :
       self._limb.set_joint_velocities(self._stop_cmd)

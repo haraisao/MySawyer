@@ -19,10 +19,12 @@
 
     <brk />
     <label text="Input:" />
-    <input id="textIn" width="50" colspan="3">
+    <input id="textIn" width="30" colspan="4">
         <message sendto="str_out" input="main_mode:textIn" />
     </input>
 
+    <brk />
+    <space />
     <button label="MoveAbs">
       <script>
          print("Call Move")
@@ -30,6 +32,7 @@
       </script>
     </button>
 
+    <space />
     <button label="MoveRel">
       <script>
          print("Call MoveRel")

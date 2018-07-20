@@ -968,13 +968,23 @@ class MySawyer(object):
     mx=np.vstack((mx, [0,0,0,1]))
     qtn=tf.transformations.quaternion_from_matrix(mx)
 
+    pose=newPose(pos, qtn)
+    pos=self._limb.ik_request(pose)
+    self._target=self.joint_pos_d2l(pos)
+
     return None
 
   def movePTPCartesianRel(self, carPos, elbow, flag):
+    ep=self.endpoint_pose()
     mx=np.array(carPos)
     pos=mx[:,3]
     mx=np.vstack((mx, [0,0,0,1]))
     qtn=tf.transformations.quaternion_from_matrix(mx)
+
+    dp=newPose(pos, qtn)
+    pose=addPose(ep, dp)
+    pos=self._limb.ik_request(pose)
+    self._target=self.joint_pos_d2l(pos)
 
     return None
 
@@ -1207,4 +1217,25 @@ class SawyerDisplay(object):
 def maxmin(v, mx, mn):
   return np.max([np.min([v,mx]), mn])
 
+def newPose(p, qtn):
+  res=Pose()
+  Pose.position.x=p[0]
+  Pose.position.y=p[1]
+  Pose.position.z=p[2]
+  Pose.orientation.x=qtn[0]
+  Pose.orientation.y=qtn[1]
+  Pose.orientation.z=qtn[2]
+  Pose.orientation.w=qtn[3]
+  return res
+
+def addPose(p1, p2):
+  res=Pose()
+  Pose.position.x=p1.position.x+p2.position.x
+  Pose.position.y=p1.position.y+p2.position.y
+  Pose.position.z=p1.position.z+p2.position.z
+  Pose.orientation.x=p1.orientation.x+p2.orientation.x
+  Pose.orientation.y=p1.orientation.y+p2.orientation.y
+  Pose.orientation.z=p1.orientation.z+p2.orientation.z
+  Pose.orientation.w=p1.orientation.w+p2.orientation.w
+  return res
 

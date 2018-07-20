@@ -44,6 +44,8 @@ stdmanipulator_spec = ["implementation_id", "StdManipulator",
 		 "lang_type",         "SCRIPT",
 		 ""]
 # </rtc-template>
+############################
+#  Data Ports
 rtc_dataports={}
 rtc_dataports['joints']={'data_type':'RTC.TimedFloatSeq', 'direction':'in'}
 rtc_dataports['grip']={'data_type':'RTC.TimedOctet', 'direction':'in'}
@@ -51,45 +53,23 @@ rtc_dataports['out_joints']={'data_type':'RTC.TimedFloatSeq', 'direction':'out'}
 rtc_dataports['out_velocity']={'data_type':'RTC.TimedFloatSeq', 'direction':'out'}
 rtc_dataports['out_torque']={'data_type':'RTC.TimedFloatSeq', 'direction':'out'}
 
+# Service Ports
+rtc_services={}
+rtc_services['manipCommon']={'impl': ManipulatorCommonInterface_Common_i, 'direction':'provider',
+                    'if_name': "JARA_ARM_ManipulatorCommonInterface_Common",
+                    'if_type_name' :"JARA_ARM::ManipulatorCommonInterface_Common"}
+
+rtc_services['manipMiddle']={'impl': ManipulatorCommonInterface_Middle_i, 'direction':'provider',
+                    'if_name': "JARA_ARM_ManipulatorCommonInterface_Middle",
+                    'if_type_name' :"JARA_ARM::ManipulatorCommonInterface_Middle"}
+
+#  Parameters
 rtc_params={}
 rtc_params['vmax']={'__type__':'float', 'default':'0.3', '__widget__':'text'}
 rtc_params['vrate']={'__type__':'float', 'default':'2.0', '__widget__':'text'}
 rtc_params['accuracy']={'__type__':'float', 'default':'0.01', '__widget__': 'text'}
 rtc_params['gripper_reverse']={'__type__':'int', 'default':'1', '__widget__':'radio', '__constraints__':'(0,1)'}
 
-
-def init_params_spec(spec, param):
-  for k1 in param.keys():
-    for k2 in param[k1].keys():
-      e="conf." + k2 + "." + k1
-      v=param[k1][k2]
-      spec.insert(-1, e)
-      spec.insert(-1, v)
-
-def init_params(param):
-  res=[]
-  for k1 in param.keys():
-    if param[k1]['__type__'] == 'string':
-      val=param[k1]['default']
-    else:
-      val=eval(param[k1]['default'])
-    res.append([k1, val])
-  return res
-
-
-def init_dataport(name, dname, typ):
-  m, d=dname.split('.')
-  d_type = eval(m+"._d_"+d)
-  v_arg = [None] * ((len(d_type) - 4) / 2)
-  _d = eval(dname)(*v_arg)
-  if typ == 'in':
-    _p = OpenRTM_aist.InPort(name, _d)
-  elif typ == 'out':
-    _p = OpenRTM_aist.OutPort(name, _d)
-  else:
-    _p = None
-
-  return _d,_p
 
 ##
 # @class StdManipulator
@@ -116,15 +96,14 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
                   else:
                     pass
 
-		"""
-		"""
-		self._mnipCommonPort = OpenRTM_aist.CorbaPort("mnipCommon")
-		self._JARA_ARM_ManipulatorCommonInterface_Common = ManipulatorCommonInterface_Common_i()
 
-		"""
-		"""
-		self._manipMiddlePort = OpenRTM_aist.CorbaPort("manipMiddle")
-		self._JARA_ARM_ManipulatorCommonInterface_Middle = ManipulatorCommonInterface_Middle_i()
+                for k in rtc_services.keys():
+                  if rtc_services[k]['direction'] == 'provider':
+		    self.__dict__['_'+k+'Port'] = OpenRTM_aist.CorbaPort(k)
+		    self.__dict__['_'+k+'_service'] = rtc_services[k]['impl']()
+                  if rtc_services[k]['direction'] == 'consumer':
+		    self.__dict__['_'+k+'Port'] = OpenRTM_aist.CorbaPort(k)
+		    self.__dict__['_'+k+'_service'] = OpenRTM_aist.CorbaConsumer(interfaceType=rtc_services[k]['if_type'])
 
 
 		# initialize of configuration-data.
@@ -164,11 +143,18 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 
 		
 		# Set service provider to Ports
-		self._mnipCommonPort.registerProvider("JARA_ARM_ManipulatorCommonInterface_Common", "JARA_ARM::ManipulatorCommonInterface_Common", self._JARA_ARM_ManipulatorCommonInterface_Common)
-		self.addPort(self._mnipCommonPort)
+                for k in rtc_services.keys():
+                  if rtc_services[k]['direction'] == 'provider':
+		    s_port=self.__dict__['_'+k+'Port']
+		    service=self.__dict__['_'+k+'_service']
+		    s_port.registerProvider(rtc_services[k]['if_name'], rtc_services[k]['if_type_name'], service)
+		    self.addPort(s_port)
+                  elif rtc_services[k]['direction'] == 'consumer':
+		    s_port=self.__dict__['_'+k+'Port']
+		    service=self.__dict__['_'+k+'_service']
+		    s_port.registerConsumer(rtc_services[k]['if_name'], rtc_services[k]['if_type_name'], service)
+		    self.addPort(s_port)
 
-		self._manipMiddlePort.registerProvider("JARA_ARM_ManipulatorCommonInterface_Middle", "JARA_ARM::ManipulatorCommonInterface_Middle", self._JARA_ARM_ManipulatorCommonInterface_Middle)
-		self.addPort(self._manipMiddlePort)
 		
 		# Set service consumers to Ports
 		
@@ -180,8 +166,10 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
                 self._robot=MySawyer(self.getInstanceName(), anonymous=False)
                 self._robot.activate()
                 self._robot._is_running=True
-		self._JARA_ARM_ManipulatorCommonInterface_Common._robot=self._robot
-		self._JARA_ARM_ManipulatorCommonInterface_Middle._robot=self._robot
+		self._manipCommon_service._robot=self._robot
+		self._manipMiddle_service._robot=self._robot
+		#self._JARA_ARM_ManipulatorCommonInterface_Common._robot=self._robot
+		#self._JARA_ARM_ManipulatorCommonInterface_Middle._robot=self._robot
 	
 		return RTC.RTC_OK
 	
@@ -219,6 +207,42 @@ class StdManipulator(OpenRTM_aist.DataFlowComponentBase):
 	
 		return RTC.RTC_OK
 	
+
+#########################################
+#
+def init_params_spec(spec, param):
+  for k1 in param.keys():
+    for k2 in param[k1].keys():
+      e="conf." + k2 + "." + k1
+      v=param[k1][k2]
+      spec.insert(-1, e)
+      spec.insert(-1, v)
+
+def init_params(param):
+  res=[]
+  for k1 in param.keys():
+    if param[k1]['__type__'] == 'string':
+      val=param[k1]['default']
+    else:
+      val=eval(param[k1]['default'])
+    res.append([k1, val])
+  return res
+
+def init_dataport(name, dname, typ):
+  m, d=dname.split('.')
+  d_type = eval(m+"._d_"+d)
+  v_arg = [None] * ((len(d_type) - 4) / 2)
+  _d = eval(dname)(*v_arg)
+  if typ == 'in':
+    _p = OpenRTM_aist.InPort(name, _d)
+  elif typ == 'out':
+    _p = OpenRTM_aist.OutPort(name, _d)
+  else:
+    _p = None
+
+  return _d,_p
+
+#########################################
 
 def StdManipulatorInit(manager):
     init_params_spec(stdmanipulator_spec, rtc_params)

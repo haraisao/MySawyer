@@ -30,32 +30,30 @@ class DataFlowRTC_Base(OpenRTM_aist.DataFlowComponentBase):
 
 		#
 		# set dataport
-                for k in self._dataports.keys():
-                  _d, _p = init_dataport(k, self._dataports)
+    for k in self._dataports.keys():
+      _d, _p = init_dataport(k, self._dataports)
 
-                  if self._dataports[k]['direction'] == 'in':
-                    self.__dict__['_d_'+k] = _d
-                    self.__dict__['_'+k+'In'] = _p
-                  elif self._dataports[k]['direction'] == 'out':
-                    self.__dict__['_d_'+k] = _d
-                    self.__dict__['_'+k+'Out'] = _p
-                  else:
-                    pass
-
+      if self._dataports[k]['direction'] == 'in':
+        self.__dict__['_d_'+k] = _d
+        self.__dict__['_'+k+'In'] = _p
+      elif self._dataports[k]['direction'] == 'out':
+        self.__dict__['_d_'+k] = _d
+        self.__dict__['_'+k+'Out'] = _p
+      else:
+        pass
 
 		# set service port
-                for k in self._services.keys():
-                  if self._services[k]['direction'] == 'provider':
-		    self.__dict__['_'+k+'Port'] = OpenRTM_aist.CorbaPort(k)
-		    self.__dict__['_'+k+'_service'] = self._services[k]['impl']()
-                  if self._services[k]['direction'] == 'consumer':
-		    self.__dict__['_'+k+'Port'] = OpenRTM_aist.CorbaPort(k)
-		    self.__dict__['_'+k+'_service'] = OpenRTM_aist.CorbaConsumer(interfaceType=self._services[k]['if_type'])
-
+    for k in self._services.keys():
+      if self._services[k]['direction'] == 'provider':
+        self.__dict__['_'+k+'Port'] = OpenRTM_aist.CorbaPort(k)
+        self.__dict__['_'+k+'_service'] = self._services[k]['impl']()
+      elif self._services[k]['direction'] == 'consumer':
+        self.__dict__['_'+k+'Port'] = OpenRTM_aist.CorbaPort(k)
+        self.__dict__['_'+k+'_service'] = OpenRTM_aist.CorbaConsumer(interfaceType=self._services[k]['if_type'])
 
 		# initialize of configuration-data.
-                for x in init_params(self._params):
-                    self.__dict__['_'+x[0]] = [x[1]]
+    for x in init_params(self._params):
+      self.__dict__['_'+x[0]] = [x[1]]
 		
 	##
 	#
@@ -68,36 +66,35 @@ class DataFlowRTC_Base(OpenRTM_aist.DataFlowComponentBase):
 	def onInitialize(self):
 
 		# Bind variables and configuration variable
-                for k in self._params.keys():
-          	  self.bindParameter(k, self.__dict__['_'+k], self._params[k]['default'])
+    for k in self._params.keys():
+      self.bindParameter(k, self.__dict__['_'+k], self._params[k]['default'])
                   
 		# Set DataPort buffers
-                for k in self._dataports.keys():
-                  if self._dataports[k]['direction'] == 'in':
-		    self.addOutPort(k, self.__dict__['_'+k+'In'])
-                  elif self._dataports[k]['direction'] == 'out':
-		    self.addOutPort(k, self.__dict__['_'+k+'Out'])
-                  else:
-                    pass
+    for k in self._dataports.keys():
+      if self._dataports[k]['direction'] == 'in':
+        self.addOutPort(k, self.__dict__['_'+k+'In'])
+      elif self._dataports[k]['direction'] == 'out':
+        self.addOutPort(k, self.__dict__['_'+k+'Out'])
+      else:
+        pass
 
 		
 		# Set service ports
-                for k in self._services.keys():
-                  if self._services[k]['direction'] == 'provider':
-		    s_port=self.__dict__['_'+k+'Port']
-		    service=self.__dict__['_'+k+'_service']
-		    s_port.registerProvider(self._services[k]['if_name'], self._services[k]['if_type_name'], service)
-		    self.addPort(s_port)
-                  elif self._services[k]['direction'] == 'consumer':
-		    s_port=self.__dict__['_'+k+'Port']
-		    service=self.__dict__['_'+k+'_service']
-		    s_port.registerConsumer(self._services[k]['if_name'], self._services[k]['if_type_name'], service)
-		    self.addPort(s_port)
-                  else:
-		    pass
-		
-		##################
-		#
+    service_keys = self._services.keys()
+    service_keys.sort()
+    for k in service_keys:
+      s_port=self.__dict__['_'+k+'Port']
+      service=self.__dict__['_'+k+'_service']
+
+      if self._services[k]['direction'] == 'provider'
+        s_port.registerProvider(self._services[k]['if_name'], self._services[k]['if_type_name'], service)
+        self.addPort(s_port)
+
+      elif self._services[k]['direction'] == 'consumer':
+        s_port.registerConsumer(self._services[k]['if_name'], self._services[k]['if_type_name'], service)
+        self.addPort(s_port)
+      else:
+        pass
 		
 		return RTC.RTC_OK
 	

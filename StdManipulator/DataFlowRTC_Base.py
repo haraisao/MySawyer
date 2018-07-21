@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 # -*- Python -*-
 
+# Copyright(C) 2018 Isao Hara,AIST,JP
+# All rights reserved
+# License: the MIT License
+
 import sys
 import time
 sys.path.append(".")
@@ -12,8 +16,8 @@ import OpenRTM_aist
 
 
 ##
-# @class StdManipulator
-# @brief Manipulator controller with JARA Standard Interfaces
+# @class DataFlowRTC_Base
+# @brief DataFlowComponentBase
 # 
 # 
 class DataFlowRTC_Base(OpenRTM_aist.DataFlowComponentBase):

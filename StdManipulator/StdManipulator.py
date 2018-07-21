@@ -6,7 +6,9 @@
  @file StdManipulator.py
  @brief Manipulator controller with JARA Standard Interfaces
  @date $Date$
+ @license the MIT License
 
+ copyright (C) 2018 Isao Hara,AIST,JP All rights reserved
 
 """
 import sys

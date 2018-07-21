@@ -1,4 +1,7 @@
 #
+#  Copyright (C) 2018 Isao Hara,AIST,JP
+#  All rights reserved
+#
 #
 from __future__ import print_function
 import os

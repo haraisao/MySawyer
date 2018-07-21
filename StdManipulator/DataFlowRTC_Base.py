@@ -17,19 +17,19 @@ import OpenRTM_aist
 # 
 # 
 class DataFlowRTC_Base(OpenRTM_aist.DataFlowComponentBase):
-	
-	##
-	# @brief constructor
-	# @param manager Maneger Object
-	# 
-	def __init__(self, manager, rtc_dataports, rtc_services, rtc_params):
-		OpenRTM_aist.DataFlowComponentBase.__init__(self, manager)
-		self._dataports=rtc_dataports
-		self._services=rtc_services
-		self._params=rtc_params
+  
+  ##
+  # @brief constructor
+  # @param manager Maneger Object
+  # 
+  def __init__(self, manager, rtc_dataports, rtc_services, rtc_params):
+    OpenRTM_aist.DataFlowComponentBase.__init__(self, manager)
+    self._dataports=rtc_dataports
+    self._services=rtc_services
+    self._params=rtc_params
 
-		#
-		# set dataport
+    #
+    # set dataport
     for k in self._dataports.keys():
       _d, _p = init_dataport(k, self._dataports)
 
@@ -42,7 +42,7 @@ class DataFlowRTC_Base(OpenRTM_aist.DataFlowComponentBase):
       else:
         pass
 
-		# set service port
+    # set service port
     for k in self._services.keys():
       if self._services[k]['direction'] == 'provider':
         self.__dict__['_'+k+'Port'] = OpenRTM_aist.CorbaPort(k)
@@ -51,25 +51,25 @@ class DataFlowRTC_Base(OpenRTM_aist.DataFlowComponentBase):
         self.__dict__['_'+k+'Port'] = OpenRTM_aist.CorbaPort(k)
         self.__dict__['_'+k+'_service'] = OpenRTM_aist.CorbaConsumer(interfaceType=self._services[k]['if_type'])
 
-		# initialize of configuration-data.
+    # initialize of configuration-data.
     for x in init_params(self._params):
       self.__dict__['_'+x[0]] = [x[1]]
-		
-	##
-	#
-	# The initialize action (on CREATED->ALIVE transition)
-	# formaer rtc_init_entry() 
-	# 
-	# @return RTC::ReturnCode_t
-	# 
-	#
-	def onInitialize(self):
+    
+  ##
+  #
+  # The initialize action (on CREATED->ALIVE transition)
+  # formaer rtc_init_entry() 
+  # 
+  # @return RTC::ReturnCode_t
+  # 
+  #
+  def onInitialize(self):
 
-		# Bind variables and configuration variable
+    # Bind variables and configuration variable
     for k in self._params.keys():
       self.bindParameter(k, self.__dict__['_'+k], self._params[k]['default'])
                   
-		# Set DataPort buffers
+    # Set DataPort buffers
     for k in self._dataports.keys():
       if self._dataports[k]['direction'] == 'in':
         self.addOutPort(k, self.__dict__['_'+k+'In'])
@@ -78,15 +78,15 @@ class DataFlowRTC_Base(OpenRTM_aist.DataFlowComponentBase):
       else:
         pass
 
-		
-		# Set service ports
+    
+    # Set service ports
     service_keys = self._services.keys()
     service_keys.sort()
     for k in service_keys:
       s_port=self.__dict__['_'+k+'Port']
       service=self.__dict__['_'+k+'_service']
 
-      if self._services[k]['direction'] == 'provider'
+      if self._services[k]['direction'] == 'provider':
         s_port.registerProvider(self._services[k]['if_name'], self._services[k]['if_type_name'], service)
         self.addPort(s_port)
 
@@ -95,9 +95,9 @@ class DataFlowRTC_Base(OpenRTM_aist.DataFlowComponentBase):
         self.addPort(s_port)
       else:
         pass
-		
-		return RTC.RTC_OK
-	
+    
+    return RTC.RTC_OK
+  
 
 #########################################
 #
